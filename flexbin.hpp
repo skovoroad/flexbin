@@ -13,6 +13,7 @@ namespace flexbin
   	template<typename T>
   	std::basic_istream<char>& operator>> ( T& )
   	{
+      return *this;
   	}
   };
 
@@ -22,11 +23,40 @@ namespace flexbin
   	{
   	}
 
-  	template<typename T>
-  	std::basic_ostream<char>& operator<< (const T& )
-  	{
-  	}
+    template<typename T> std::basic_ostream<char>& operator<< (const T& obj)
+    {
+      if(std::is_fundamental<T>::value)
+      {
+        *this << obj;
+      }
+      else
+      {
+        auto field_serializer = [this](auto&&... args) { 
+            ( ( *this << args), ...);
+        };
 
+        std::apply( 
+          field_serializer,
+          obj.flexbin_serialize() 
+        );
+      }
+      return *this;
+    }
   };
 
+  template<> std::basic_ostream<char>& ostream::operator<< <uint64_t> (const uint64_t& val)
+  {
+    // write here
+    return *this;
+  }
+
+  template<> std::basic_ostream<char>& ostream::operator<< <uint32_t> (const uint32_t& val)
+  {
+    // write here
+    return *this;
+  }
+
 } // flexbin
+
+#define FLEXBIN_SERIALIZE(...) \
+  auto flexbin_serialize() const { return std::forward_as_tuple(__VA_ARGS__); } 
