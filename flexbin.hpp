@@ -1,6 +1,6 @@
 #pragma oncm
 #include <iostream>
-
+#include <string>
 
 namespace flexbin
 {
@@ -44,13 +44,22 @@ namespace flexbin
     }
   };
 
-  template<> std::basic_ostream<char>& ostream::operator<< <uint64_t> (const uint64_t& val)
+  template<> 
+  std::basic_ostream<char>& ostream::operator<< <uint64_t> (const uint64_t& val)
   {
     // write here
     return *this;
   }
 
-  template<> std::basic_ostream<char>& ostream::operator<< <uint32_t> (const uint32_t& val)
+  template<> 
+  std::basic_ostream<char>& ostream::operator<< <uint32_t> (const uint32_t& val)
+  {
+    // write here
+    return *this;
+  }
+
+  template<> 
+  std::basic_ostream<char>& ostream::operator<< <std::string> (const std::string& val)
   {
     // write here
     return *this;

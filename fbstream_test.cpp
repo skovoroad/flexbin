@@ -4,17 +4,32 @@
 
 namespace test_data
 {
+  struct test_substruct
+  {
+    std::string strval_;
+
+    FLEXBIN_SERIALIZE(strval_)
+  };
+
   struct test_struct
   {
     uint64_t val64_;
     uint32_t val32_;
 
-    FLEXBIN_SERIALIZE(val64_, val32_)
+    test_substruct ss_;
+
+    FLEXBIN_SERIALIZE(val64_, val32_, ss_)
   };
 
   inline bool operator==(const test_struct& lhs, 
 					     const test_struct& rhs)
   {
+    std::cout << "comparing "  << std::endl
+      << lhs.val64_ << " " << lhs.val32_ << " " << lhs.ss_.strval_ << std::endl
+      << rhs.val64_ << " " << rhs.val32_ << " " << rhs.ss_.strval_ << std::endl
+      ;
+
+
     return lhs.val64_ == rhs.val64_ &&
            lhs.val32_ == rhs.val32_;
   }
@@ -30,8 +45,8 @@ public:
 
 TEST(TestFlexbin, SimpleInOutEquality)
 {
-  test_data::test_struct a { 10^5, 1};
-  test_data::test_struct b { 0, 1};
+  test_data::test_struct a { 10^5, 1, { "first"}};
+  test_data::test_struct b { 0, 1, { "second"}};
 
   std::filebuf fbuf;
   fbuf.open("/tmp/inout",std::ios_base::in | std::ios_base::out);
