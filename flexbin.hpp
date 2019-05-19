@@ -27,17 +27,18 @@ namespace flexbin
     {
       if(std::is_fundamental<T>::value)
       {
+//        ??? dispatch fixed or requred or simplified or optional ??? 
         *this << obj;
       }
       else
       {
-        auto field_serializer = [this](auto&&... args) { 
+        auto field_serializer_required = [this](auto&&... args) { 
             ( ( *this << args), ...);
         };
 
         std::apply( 
-          field_serializer,
-          obj.flexbin_serialize() 
+          field_serializer_required,
+          obj.flexbin_serialize_required() 
         );
       }
       return *this;
@@ -65,7 +66,25 @@ namespace flexbin
     return *this;
   }
 
+  template<typename T>
+  struct type_traits
+  {
+    static const T default_value;
+    static const uint8_t code; 
+
+    static size_t write_fixed(std::streambuf *, const T &);
+  };
+
 } // flexbin
 
-#define FLEXBIN_SERIALIZE(...) \
-  auto flexbin_serialize() const { return std::forward_as_tuple(__VA_ARGS__); } 
+#define FLEXBIN_SERIALIZE_FIXED(...) \
+  auto flexbin_serialize_fixed() const { return std::forward_as_tuple(__VA_ARGS__); } 
+
+#define FLEXBIN_SERIALIZE_REQUIRED(...) \
+  auto flexbin_serialize_required() const { return std::forward_as_tuple(__VA_ARGS__); } 
+
+#define FLEXBIN_SERIALIZE_OPTIONAL(...) \
+  auto flexbin_serialize_optional() const { return std::forward_as_tuple(__VA_ARGS__); } 
+
+#define FLEXBIN_SERIALIZE_SIMPLIFIED(...) \
+  auto flexbin_serialize_simplified() const { return std::forward_as_tuple(__VA_ARGS__); } 

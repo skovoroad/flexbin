@@ -8,7 +8,7 @@ namespace test_data
   {
     std::string strval_;
 
-    FLEXBIN_SERIALIZE(strval_)
+    FLEXBIN_SERIALIZE_REQUIRED(strval_)
   };
 
   struct test_struct
@@ -18,7 +18,9 @@ namespace test_data
 
     test_substruct ss_;
 
-    FLEXBIN_SERIALIZE(val64_, val32_, ss_)
+    FLEXBIN_SERIALIZE_FIXED(val32_)    
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
+
   };
 
   inline bool operator==(const test_struct& lhs, 
@@ -59,6 +61,19 @@ TEST(TestFlexbin, SimpleInOutEquality)
   ASSERT_EQ(a, b);
 
 }
+
+
+// todo:
+// 1. compact value representation
+// 2. flexbin fields encoding
+// 3. requered, fixed, optional, simplified
+// 4. flexstring
+// 5. all types support
+// 6. tests
+
+// questions
+// why field id? it does nothing (if no optional or simplified)
+// fixed cannot be object or string (no place for length)
 
 int main(int argc, char** argv)
 {
