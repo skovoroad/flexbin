@@ -74,6 +74,7 @@ TEST(TestFlexbin, SimpleInOutEquality)
 // questions
 // why field id? it does nothing (if no optional or simplified)
 // fixed cannot be object or string (no place for length)
+// 
 
 int main(int argc, char** argv)
 {

@@ -23,54 +23,83 @@ namespace flexbin
   	{
   	}
 
-    template<typename T> std::basic_ostream<char>& operator<< (const T& obj)
-    {
-      if(std::is_fundamental<T>::value)
-      {
-//        ??? dispatch fixed or requred or simplified or optional ??? 
-        *this << obj;
-      }
-      else
-      {
-        auto field_serializer_required = [this](auto&&... args) { 
-            ( ( *this << args), ...);
-        };
-
-        std::apply( 
-          field_serializer_required,
-          obj.flexbin_serialize_required() 
-        );
-      }
-      return *this;
-    }
+    template<typename T> std::basic_ostream<char>& operator<< (const T& obj);
   };
+
+
+  template<typename T>
+  struct store_strategy_fixed {
+    size_t write( ostream& ostr, const T& value) {
+      ostr << value;
+      return 0;
+    };
+  };
+
+  struct store_strategy_required {
+    template<typename T>    
+    static size_t write( ostream& ostr, const T& value) {
+      ostr << value;
+      return 0;
+    };
+  };
+
+  template<typename T>
+  struct store_strategy_optional{
+    size_t write( ostream& ostr, const T& value) {
+      ostr << value;
+      return 0;
+    };
+  };
+
+  template<typename T>
+  struct store_strategy_simplified{
+    size_t write( ostream& ostr, const T& value) {
+      ostr << value;
+      return 0;
+    };
+  };
+
+  template<typename T> 
+  std::basic_ostream<char>& ostream::operator<< (const T& obj)
+  {
+    {
+      auto field_serializer_required = [this](auto&&... args) { 
+            ( ( store_strategy_required::write(*this, args) ) , 
+            ...
+          );
+      };
+
+      std::apply( 
+        field_serializer_required,
+        obj.flexbin_serialize_required() 
+      );
+    }
+    return *this;
+  }
 
   template<> 
   std::basic_ostream<char>& ostream::operator<< <uint64_t> (const uint64_t& val)
   {
-    // write here
     return *this;
   }
 
   template<> 
   std::basic_ostream<char>& ostream::operator<< <uint32_t> (const uint32_t& val)
   {
-    // write here
     return *this;
   }
 
   template<> 
   std::basic_ostream<char>& ostream::operator<< <std::string> (const std::string& val)
   {
-    // write here
     return *this;
   }
 
   template<typename T>
   struct type_traits
   {
-    static const T default_value;
-    static const uint8_t code; 
+    static const T default_value_;
+    static const uint8_t code_; 
 
     static size_t write_fixed(std::streambuf *, const T &);
   };
