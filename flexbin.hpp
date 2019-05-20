@@ -28,6 +28,34 @@ namespace flexbin
 
 
   template<typename T>
+  struct type_traits
+  {
+    static const T default_value_;
+    static const uint8_t code_; 
+  };
+
+  template<>
+  struct type_traits<uint64_t>
+  {
+    static const uint64_t default_value_ = 0;
+    static const uint8_t code_ = 16; 
+  };
+
+  template<>
+  struct type_traits<uint32_t>
+  {
+    static const uint32_t default_value_ = 0;
+    static const uint8_t code_ = 8; 
+  };
+
+  template<>
+  struct type_traits<std::string>
+  {
+    static const std::string default_value_;
+    static const uint8_t code_ = 21; 
+  };
+
+  template<typename T>
   struct store_strategy_fixed {
     size_t write( ostream& ostr, const T& value) {
       ostr << value;
@@ -38,7 +66,18 @@ namespace flexbin
   struct store_strategy_required {
     template<typename T>    
     static size_t write( ostream& ostr, const T& value) {
-      ostr << value;
+/*      if(std::is_fundamental<T>())
+      {
+        ostr.write(&type_traits<t>::code, 1);
+
+        // field id !!! how to get it?
+
+        ostr.write(&value, sizeof(value));        
+      }
+      else*/
+      {
+        ostr << value;
+      }
       return 0;
     };
   };
@@ -94,15 +133,6 @@ namespace flexbin
   {
     return *this;
   }
-
-  template<typename T>
-  struct type_traits
-  {
-    static const T default_value_;
-    static const uint8_t code_; 
-
-    static size_t write_fixed(std::streambuf *, const T &);
-  };
 
 } // flexbin
 
