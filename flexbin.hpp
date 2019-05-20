@@ -31,7 +31,7 @@ namespace flexbin
   template<typename T>
   struct type_traits
   {
-    enum { code_ = 0 };
+    enum { code_ = 29 /* "object" field id */ };
     inline static size_t write( ostream& ostr, const T& ) { return 0;}
 
   };
@@ -71,6 +71,60 @@ namespace flexbin
       return 0; 
     }
   };
+  
+  template<typename T>
+  inline size_t write_field(ostream& ostr, uint8_t field_id, const T& value) {
+    uint8_t code = type_traits<T>::code_;
+    ostr.write(reinterpret_cast<const char*>(&code), 1);
+    ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+    size_t nbytes = type_traits<T>::write(ostr, value);
+    return nbytes + 2;
+  }
+
+  template <typename T, class Enabler = void>
+  struct class_id { 
+    uint16_t get( const T& value ) { return value.flexbin_class_id(); }
+  };
+
+  template <>
+  struct class_id<std::string, void > { 
+    uint16_t get( const std::string& value) { return 0; }
+  };
+   
+  template <typename T>
+  struct class_id <T, std::enable_if_t<std::is_fundamental<T>::value> > { 
+    uint16_t get( const T& value) { return 0; }
+  };
+
+  template <typename T>
+  uint16_t get_class_id(const T& value) { 
+    class_id<T> t;
+    return t.get(value);
+  }
+
+  template<typename T>
+  inline size_t write_object(ostream& ostr, uint8_t field_id, const T& value) {
+    // field header
+    uint8_t code = type_traits<T>::code_;
+    ostr.write(reinterpret_cast<const char*>(&code), 1);
+    ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+    
+    // object header
+    uint32_t object_size = 0; // TODO
+    ostr.write(reinterpret_cast<const char*>(&object_size), 4);
+
+    class_id<T> t;
+    uint16_t class_id = get_class_id(value);
+    ostr.write(reinterpret_cast<const char*>(&class_id), 2);
+
+    // write fields
+    ostr << value;
+
+    const uint8_t end_marker = 255;
+    ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
+    
+    return 0;
+  }
 
   template<typename T>
   struct store_strategy_fixed {
@@ -82,17 +136,14 @@ namespace flexbin
 
   struct store_strategy_required {
     template<typename T>    
-    static size_t write( ostream& ostr,  uint8_t field_id, const T& value) {
+    static size_t write( ostream& ostr, uint8_t field_id, const T& value) {
       if(std::is_fundamental<T>())
       {
-        uint8_t code = type_traits<T>::code_;
-        ostr.write(reinterpret_cast<const char*>(&code), 1);
-        ostr.write(reinterpret_cast<const char*>(&code, field_id), 1);
-        type_traits<T>::write(ostr, value);
+        write_field(ostr, field_id, value);
       }
       else
       {
-        ostr << value;
+        write_object(ostr, field_id, value);
       }
       return 0;
     };
@@ -152,6 +203,8 @@ namespace flexbin
   }
 
 } // flexbin
+
+#define FLEXBIN_CLASS_ID(id)  uint16_t flexbin_class_id() const { return id ;}
 
 #define FLEXBIN_SERIALIZE_FIXED(...) \
   auto flexbin_serialize_fixed() const { return std::forward_as_tuple(__VA_ARGS__); } 

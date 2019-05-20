@@ -8,6 +8,8 @@ namespace test_data
   {
     std::string strval_;
 
+    FLEXBIN_CLASS_ID(666);
+
     FLEXBIN_SERIALIZE_REQUIRED(strval_)
   };
 
@@ -17,6 +19,8 @@ namespace test_data
     uint32_t val32_;
 
     test_substruct ss_;
+
+    FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)    
     FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
