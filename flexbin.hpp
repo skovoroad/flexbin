@@ -1,4 +1,5 @@
 #pragma once
+#include <type_traits>
 #include <iostream>
 #include <tuple>
 #include <string>
@@ -163,11 +164,48 @@ namespace flexbin
     };
   };
 
-  template<typename T> 
+  // serializable class may not have fixed/required/optional/simplified section, 
+  // so we need sfinae to detect it
+  struct flexbin_writer
+  {
+    uint8_t field_id = 0;
+
+    /// doesn't work, maybe because we dont know returt type of flexbin_serialize_required() function
+    /// maybe we need to declare somthing in serializable class with MACRO
+    /// we need to construct condition - does function exists
+    
+    
+    template <typename C> static char test_required_fields( typeof(&C::flexbin_serialize_required) ) ;
+    template <typename C> static long test_required_fields(...);
+
+    template<typename T>
+    //struct std::enable_if< sizeof(test_required_fields<T>( nullptr)) == sizeof(char) >::type
+    void write_required_fields( T& obj) {
+      auto field_serializer_required = [this](auto&&... args) { 
+            ( ( store_strategy_required::write(*this, ++field_id,  args) ) , 
+            ...
+          );
+      };
+      std::apply( 
+        field_serializer_required,
+        obj.flexbin_serialize_required() 
+      );
+    }
+
+/*    template<class T>
+    struct std::enable_if< sizeof(test_required_fields<T>( nullptr )) != sizeof(char) >::type
+    void write_required_fields(T& obj) 
+    {
+    }*/
+  };
+
+  template<typename T>
   std::basic_ostream<char>& ostream::operator<< (const T& obj)
   {
     {
-      uint8_t field_id = 0;
+      flexbin_writer writer;
+//      auto res = writer.write_required_fields(obj);
+/*      uint8_t field_id = 0;
       auto field_serializer_required = [this, &field_id](auto&&... args) { 
             ( ( store_strategy_required::write(*this, ++field_id,  args) ) , 
             ...
@@ -177,7 +215,7 @@ namespace flexbin
       std::apply( 
         field_serializer_required,
         obj.flexbin_serialize_required() 
-      );
+      );*/
 /*
       auto field_serializer_optional = [this, &field_id](auto&&... args) { 
             ( ( store_strategy_optional::write(*this, ++field_id,  args) ) , 
@@ -193,7 +231,7 @@ namespace flexbin
     return *this;
   }
 
-} // flexbin
+} // namespace flexbin 
 
 #define FLEXBIN_CLASS_ID(id)  enum { flexbin_class_id = id };
 
