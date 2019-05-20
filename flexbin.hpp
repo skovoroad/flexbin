@@ -31,34 +31,50 @@ namespace flexbin
   template<typename T>
   struct type_traits
   {
-    static const T default_value_;
-    static const uint8_t code_; 
+    enum { code_ = 0 };
+    inline static size_t write( ostream& ostr, const T& ) { return 0;}
+
   };
 
   template<>
   struct type_traits<uint64_t>
   {
-    static const uint64_t default_value_ = 0;
-    static const uint8_t code_ = 16; 
+    enum { default_value_ = 0 };
+    enum { code_ = 16 };
+
+    inline static size_t write( ostream& ostr, const uint64_t& val) { 
+      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint64_t));
+      return sizeof(uint64_t); 
+    }
+
   };
 
   template<>
   struct type_traits<uint32_t>
   {
-    static const uint32_t default_value_ = 0;
-    static const uint8_t code_ = 8; 
+    enum { default_value_ = 0 };
+    enum { code_ = 8 };
+
+    inline static size_t write( ostream& ostr, const uint32_t& val ) { 
+      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint32_t));
+      return sizeof(uint64_t); 
+     }
+
   };
 
   template<>
   struct type_traits<std::string>
   {
-    static const std::string default_value_;
-    static const uint8_t code_ = 21; 
+    enum { code_ = 21 };
+    
+    inline static size_t write( ostream& ostr, const std::string& ) { 
+      return 0; 
+    }
   };
 
   template<typename T>
   struct store_strategy_fixed {
-    size_t write( ostream& ostr, const T& value) {
+    size_t write( ostream& ostr, uint8_t field_id,  const T& value) {
       ostr << value;
       return 0;
     };
@@ -66,16 +82,15 @@ namespace flexbin
 
   struct store_strategy_required {
     template<typename T>    
-    static size_t write( ostream& ostr, const T& value) {
-/*      if(std::is_fundamental<T>())
+    static size_t write( ostream& ostr,  uint8_t field_id, const T& value) {
+      if(std::is_fundamental<T>())
       {
-        ostr.write(&type_traits<t>::code, 1);
-
-        // field id !!! how to get it?
-
-        ostr.write(&value, sizeof(value));        
+        uint8_t code = type_traits<T>::code_;
+        ostr.write(reinterpret_cast<const char*>(&code), 1);
+        ostr.write(reinterpret_cast<const char*>(&code, field_id), 1);
+        type_traits<T>::write(ostr, value);
       }
-      else*/
+      else
       {
         ostr << value;
       }
@@ -85,7 +100,7 @@ namespace flexbin
 
   template<typename T>
   struct store_strategy_optional{
-    size_t write( ostream& ostr, const T& value) {
+    size_t write( ostream& ostr,  uint8_t field_id, const T& value) {
       ostr << value;
       return 0;
     };
@@ -93,7 +108,7 @@ namespace flexbin
 
   template<typename T>
   struct store_strategy_simplified{
-    size_t write( ostream& ostr, const T& value) {
+    size_t write( ostream& ostr,  uint8_t field_id, const T& value) {
       ostr << value;
       return 0;
     };
@@ -103,8 +118,9 @@ namespace flexbin
   std::basic_ostream<char>& ostream::operator<< (const T& obj)
   {
     {
-      auto field_serializer_required = [this](auto&&... args) { 
-            ( ( store_strategy_required::write(*this, args) ) , 
+      uint8_t field_id = 0;
+      auto field_serializer_required = [this, &field_id](auto&&... args) { 
+            ( ( store_strategy_required::write(*this, ++field_id,  args) ) , 
             ...
           );
       };
