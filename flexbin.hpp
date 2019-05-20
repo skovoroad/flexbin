@@ -1,5 +1,6 @@
-#pragma oncm
+#pragma once
 #include <iostream>
+#include <tuple>
 #include <string>
 
 namespace flexbin
