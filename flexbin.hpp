@@ -107,7 +107,7 @@ namespace flexbin
     uint8_t code = type_traits<T>::code_;
     ostr.write(reinterpret_cast<const char*>(&code), 1);
     ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-    
+
     // object header
     uint32_t object_size = 0; // TODO
     ostr.write(reinterpret_cast<const char*>(&object_size), 4);

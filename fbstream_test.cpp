@@ -59,8 +59,9 @@ TEST(TestFlexbin, SimpleInOutEquality)
   flexbin::istream fbin(&fbuf);
   flexbin::ostream fbout(&fbuf);
 
-  fbin >> a;
   fbout << b;
+  fbout.flush();
+  fbin >> a;
 
   ASSERT_EQ(a, b);
 
@@ -69,7 +70,7 @@ TEST(TestFlexbin, SimpleInOutEquality)
 
 // todo:
 // 1. compact value representation
-// 2. flexbin fields encoding
+// + 2. flexbin fields encoding
 // 3. requered, fixed, optional, simplified
 // 4. flexstring
 // 5. all types support
