@@ -83,23 +83,22 @@ namespace flexbin
 
   template <typename T, class Enabler = void>
   struct class_id { 
-    uint16_t get( const T& value ) { return value.flexbin_class_id(); }
+    enum { value = T::flexbin_class_id };
   };
 
   template <>
   struct class_id<std::string, void > { 
-    uint16_t get( const std::string& value) { return 0; }
+    enum { value = 0 };
   };
    
   template <typename T>
   struct class_id <T, std::enable_if_t<std::is_fundamental<T>::value> > { 
-    uint16_t get( const T& value) { return 0; }
+    enum { value = 0 };
   };
 
   template <typename T>
-  uint16_t get_class_id(const T& value) { 
-    class_id<T> t;
-    return t.get(value);
+  uint16_t get_class_id(const T&) { 
+    return class_id<T>::value;
   }
 
   template<typename T>
@@ -204,7 +203,7 @@ namespace flexbin
 
 } // flexbin
 
-#define FLEXBIN_CLASS_ID(id)  uint16_t flexbin_class_id() const { return id ;}
+#define FLEXBIN_CLASS_ID(id)  enum { flexbin_class_id = id };
 
 #define FLEXBIN_SERIALIZE_FIXED(...) \
   auto flexbin_serialize_fixed() const { return std::forward_as_tuple(__VA_ARGS__); } 
