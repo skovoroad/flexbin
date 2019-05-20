@@ -23,9 +23,11 @@ namespace test_data
 
     FLEXBIN_CLASS_ID(777);
 
-    FLEXBIN_SERIALIZE_FIXED(val32_)    
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
-    FLEXBIN_SERIALIZE_OPTIONAL(val8_)    
+    //FLEXBIN_SERIALIZE_FIXED(val32_)    
+    //FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
+    //FLEXBIN_SERIALIZE_OPTIONAL(val8_)    
+
+    FLEXBIN_SERIALIZE_REQUIRED(val64_) 
 
   };
 
@@ -84,8 +86,18 @@ TEST(TestFlexbin, SimpleInOutEquality)
 // fixed cannot be object or string (no place for length)
 // 
 
+
 int main(int argc, char** argv)
 {
+    //std::cout << sizeof(flexbin::test_required_fields<test_data::test_struct>(0)) << std::endl;
+    //std::cout << sizeof(flexbin::test_required_fields<test_data::test_substruct>(0)) << std::endl;
+
+
+    //std::cout << flexbin::has_required_fields<test_data::test_substruct>::yes << std::endl;
+    //std::cout << flexbin::has_required_fields<test_data::test_struct>::yes << std::endl;
+    //std:: cout << sizeof(&test_data::test_substruct::flexbin_serialize_required_defined)<< std::endl;
+    //std:: cout << sizeof(&test_data::test_struct::flexbin_serialize_required_defined)<< std::endl;
+    //return 0;
    ::testing::InitGoogleTest(&argc, argv);
    return RUN_ALL_TESTS();
 }
