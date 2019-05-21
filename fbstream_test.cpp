@@ -23,12 +23,9 @@ namespace test_data
 
     FLEXBIN_CLASS_ID(777);
 
-    //FLEXBIN_SERIALIZE_FIXED(val32_)    
-    //FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
-    //FLEXBIN_SERIALIZE_OPTIONAL(val8_)    
-
-    FLEXBIN_SERIALIZE_REQUIRED(val64_) 
-
+    FLEXBIN_SERIALIZE_FIXED(val32_)    
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
+    FLEXBIN_SERIALIZE_OPTIONAL(val8_)    
   };
 
   inline bool operator==(const test_struct& lhs, const test_struct& rhs)

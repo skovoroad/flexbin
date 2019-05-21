@@ -170,41 +170,58 @@ namespace flexbin
 
   template<typename T>
   struct has_required_fields {
-    template <typename C> static char test( creatable_non_zero<sizeof(&C::flexbin_serialize_required_defined)> ) ;
+    template <typename C> static char test( creatable_non_zero<sizeof(&C::flexbin_serialize_required)> ) ;
     template <typename C> static long test(...);
     enum { yes = sizeof(test<T>( 0 )) == sizeof(char) };
-
   };
 
-  
-  
+  template<typename T>
+  struct has_optional_fields {
+    template <typename C> static char test( creatable_non_zero<sizeof(&C::flexbin_serialize_optional)> ) ;
+    template <typename C> static long test(...);
+    enum { yes = sizeof(test<T>( 0 )) == sizeof(char) };
+  };
+
+  template<typename T>
+  struct has_fixed_fields {
+    template <typename C> static char test( creatable_non_zero<sizeof(&C::flexbin_serialize_fixed)> ) ;
+    template <typename C> static long test(...);
+    enum { yes = sizeof(test<T>( 0 )) == sizeof(char) };
+  };
+
+  template<typename T>
+  struct has_simplified_fields {
+    template <typename C> static char test( creatable_non_zero<sizeof(&C::flexbin_serialize_simplified)> ) ;
+    template <typename C> static long test(...);
+    enum { yes = sizeof(test<T>( 0 )) == sizeof(char) };
+  };
+
+
   template<typename T>
   struct flexbin_writer
   {
     uint8_t field_id = 0;
 
     constexpr static bool required_fields_exists = (has_required_fields<T>::yes != 0);
+    constexpr static bool optional_fields_exists = (has_optional_fields<T>::yes != 0);
+    constexpr static bool fixed_fields_exists    = (has_fixed_fields<T>::yes != 0);
+    constexpr static bool simplified_fields_exists = (has_simplified_fields<T>::yes != 0);
 
     template<typename C = size_t>
     typename std::enable_if< required_fields_exists , C>::type
     write_required_fields(ostream& ostr, const T& obj) {
-      std::cerr << "hereer" << std::endl;
-
       auto field_serializer_required = [this, &ostr](auto&&... args) { 
-            ( ( store_strategy_required::write(ostr, ++field_id,  args) ) , 
-            ...
-          );
-      };
-      std::apply( 
-        field_serializer_required,
-        obj.flexbin_serialize_required() 
-      );
+          ( ( store_strategy_required::write(ostr, ++field_id,  args) ) , ... );
+        };
+      std::apply( field_serializer_required, obj.flexbin_serialize_required());
       return 0;
     }
 
     template<typename C = size_t>
     typename std::enable_if< !required_fields_exists , C >::type
-    write_required_fields( ostream& ostr, const T& obj )     {return 0;}
+    write_required_fields( ostream& ostr, const T& obj ) {
+      return 0;
+    }
   };
 
 
@@ -214,42 +231,18 @@ namespace flexbin
     {
       flexbin_writer<T> writer;
       writer.write_required_fields(*this, obj);
-/*      uint8_t field_id = 0;
-      auto field_serializer_required = [this, &field_id](auto&&... args) { 
-            ( ( store_strategy_required::write(*this, ++field_id,  args) ) , 
-            ...
-          );
-      };
-
-      std::apply( 
-        field_serializer_required,
-        obj.flexbin_serialize_required() 
-      );*/
-/*
-      auto field_serializer_optional = [this, &field_id](auto&&... args) { 
-            ( ( store_strategy_optional::write(*this, ++field_id,  args) ) , 
-            ...
-          );
-      };
-
-      std::apply( 
-        field_serializer_optional,
-        obj.flexbin_serialize_optional() 
-      );*/
     }
     return *this;
   }
-
 } // namespace flexbin 
 
 #define FLEXBIN_CLASS_ID(id)  enum { flexbin_class_id = id };
 
 #define FLEXBIN_SERIALIZE_FIXED(...) \
-  auto flexbin_serialize_fixed() const { return std::forward_as_tuple(__VA_ARGS__); } 
+  auto flexbin_serialize_fixed() const { return std::forward_as_tuple(__VA_ARGS__); } \
 
 #define FLEXBIN_SERIALIZE_REQUIRED(...) \
   auto flexbin_serialize_required() const { return std::forward_as_tuple(__VA_ARGS__); } \
-  bool flexbin_serialize_required_defined() { return true; } ;
 
 #define FLEXBIN_SERIALIZE_OPTIONAL(...) \
   auto flexbin_serialize_optional() const { return std::forward_as_tuple(__VA_ARGS__); } 
