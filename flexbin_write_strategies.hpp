@@ -3,6 +3,37 @@
 
 namespace flexbin
 {
+////////////////////
+  template<typename T, typename candidateT>
+  void pack_if_equal(std::basic_ostream<char>& ostr,
+    const T& value,
+    size_t & already,
+    const candidateT& candidate
+    ) {
+    if (already > 0)
+      return;
+    if (value == candidate)
+    {
+      // pack candidate with its own type
+      already = 1; // nbytes!!!
+    }
+  }
+
+  template<typename T>
+  size_t pack_value(std::basic_ostream<char>& ostr, const T& value) {
+    auto pack_versions = type_traits<T>::candidates(value);
+    size_t packed_nbytes = 0;
+
+    auto pack_candidates = [value, &ostr, &packed_nbytes](auto&&... args) {
+      ((pack_if_equal(ostr, value, packed_nbytes,  args)), ...);
+    };
+
+    std::apply(pack_candidates, pack_if_equal);
+    return packed_nbytes;
+  }
+///////////////////
+
+
   template <typename T, class Enabler = void>
   struct field_writer { 
     static size_t write( ostream& ostr, uint8_t field_id, const T& value) { 
@@ -44,7 +75,8 @@ namespace flexbin
     }
 
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
-      return type_traits<T>::pack(ostr, value);
+      //return type_traits<T>::pack(ostr, value);
+      return pack_value(ostr, value);
     }
   };
 
@@ -55,7 +87,8 @@ namespace flexbin
   
   template <typename T>
   size_t field_pack(ostream& ostr, uint8_t field_id, const T& value) { 
-    return field_writer<T>::pack(ostr, field_id, value);
+    //return field_writer<T>::pack(ostr, field_id, value);
+    return pack_value(ostr, value);
   }
 
   template<typename T>    

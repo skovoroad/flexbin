@@ -17,6 +17,14 @@ namespace flexbin
     enum { default_value_ = 0 };
     enum { code_ = 16 };
 
+    inline auto candidates(const uint64_t& value) const{
+      return std::make_tuple(
+        static_cast<uint8_t>(value),
+        static_cast<uint16_t>(value),
+        static_cast<uint32_t>(value)
+      );
+    }
+
     inline static size_t write( std::basic_ostream<char>& ostr, const uint64_t& val) { 
       ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint64_t));
       return sizeof(uint64_t); 
@@ -42,6 +50,12 @@ namespace flexbin
       return 0;
       }
 
+    inline auto candidates(const uint32_t& value) const {
+      return std::make_tuple(
+        static_cast<uint8_t>(value),
+        static_cast<uint16_t>(value)
+      );
+    }
   };
 
   template<>
@@ -58,6 +72,13 @@ namespace flexbin
     inline static size_t pack( std::basic_ostream<char>& ostr, const uint8_t&) { 
       return 0;
       }
+
+    inline auto candidates(const uint8_t& value) const {
+      return std::make_tuple(
+        static_cast<uint8_t>(value)
+      );
+    }
+
 
   };
 
