@@ -130,8 +130,9 @@ namespace flexbin
   template <>
   struct field_writer<std::string, void> { 
     static size_t write( ostream& ostr, uint8_t field_id, const std::string& value) { 
-       return 0;
+       return type_traits<std::string>::write(ostr, value);
     }
+    
     static size_t pack( ostream& ostr, uint8_t field_id, const std::string& value) { 
        return write(ostr, field_id, value);
     }
@@ -140,13 +141,11 @@ namespace flexbin
   template <typename T>
   struct field_writer<T, std::enable_if_t<std::is_fundamental<T>::value> > { 
     static size_t write( ostream& ostr, uint8_t field_id, const T& value) {  
-      size_t nbytes = type_traits<T>::write(ostr, value);
-      return nbytes;
+      return type_traits<T>::write(ostr, value);
     }
-    
+
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
-      size_t nbytes = type_traits<T>::pack(ostr, value);
-      return nbytes;
+      return type_traits<T>::pack(ostr, value);
     }
   };
 
