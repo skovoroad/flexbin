@@ -90,9 +90,9 @@ namespace flexbin
     inline static size_t write( std::basic_ostream<char>& ostr, const std::string& ) { 
       return 0; 
     }
-
+    /*
     inline static size_t pack( std::basic_ostream<char>& ostr, const std::string&) { 
       return 0;
-    }
+    }*/
   };
 } // namespace flexbin

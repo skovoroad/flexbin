@@ -8,6 +8,7 @@ namespace flexbin
   void pack_if_equal(std::basic_ostream<char>& ostr,
     const T& value,
     size_t & already,
+    uint8_t field_id,
     const candidateT& candidate
     ) {
     if (already > 0)
@@ -20,12 +21,12 @@ namespace flexbin
   }
 
   template<typename T>
-  size_t pack_value(std::basic_ostream<char>& ostr, const T& value) {
+  size_t pack_value(std::basic_ostream<char>& ostr, const T& value, uint8_t field_id) {
     auto pack_versions = type_traits<T>::candidates(value);
     size_t packed_nbytes = 0;
 
-    auto pack_candidates = [value, &ostr, &packed_nbytes](auto&&... args) {
-      ((pack_if_equal(ostr, value, packed_nbytes,  args)), ...);
+    auto pack_candidates = [=](auto&&... args) {
+      ((pack_if_equal(ostr, value, packed_nbytes, field_id, args)), ...);
     };
 
     std::apply(pack_candidates, pack_if_equal);
@@ -85,12 +86,11 @@ namespace flexbin
     return field_writer<T>::write(ostr, field_id, value);
   }
   
+  
   template <typename T>
   size_t field_pack(ostream& ostr, uint8_t field_id, const T& value) { 
-    //return field_writer<T>::pack(ostr, field_id, value);
-    return pack_value(ostr, value);
+    return field_writer<T>::pack(ostr, field_id, value);
   }
-
   template<typename T>    
   inline size_t write_fixed( ostream& ostr, uint8_t field_id,  const T& value) {
     return field_write(ostr, field_id, value);
