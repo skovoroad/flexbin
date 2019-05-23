@@ -4,189 +4,26 @@
 #include <tuple>
 #include <string>
 
+#include "flexbin_type_traits.hpp"
+#include "flexbin_write_strategies.hpp"
+#include "flexbin_streams.hpp"
+
+#define FLEXBIN_CLASS_ID(id)  enum { flexbin_class_id = id };
+
+#define FLEXBIN_SERIALIZE_FIXED(...) \
+  auto flexbin_serialize_fixed() const { return std::forward_as_tuple(__VA_ARGS__); } \
+
+#define FLEXBIN_SERIALIZE_REQUIRED(...) \
+  auto flexbin_serialize_required() const { return std::forward_as_tuple(__VA_ARGS__); } \
+
+#define FLEXBIN_SERIALIZE_OPTIONAL(...) \
+  auto flexbin_serialize_optional() const { return std::forward_as_tuple(__VA_ARGS__); } 
+
+#define FLEXBIN_SERIALIZE_SIMPLIFIED(...) \
+  auto flexbin_serialize_simplified() const { return std::forward_as_tuple(__VA_ARGS__); } 
+
 namespace flexbin
 {
-  struct istream : public std::basic_istream<char>
-  {
-    istream(std::streambuf * buf) : std::basic_istream<char>(buf)
-    {
-    }
-
-    template<typename T>
-    std::basic_istream<char>& operator>> ( T& )
-    {
-      return *this;
-    }
-  };
-
-  struct ostream : public std::basic_ostream<char>
-  {
-    ostream(std::streambuf * buf) : std::basic_ostream<char>(buf)
-    {
-    }
-
-    template<typename T> std::basic_ostream<char>& operator<< (const T& obj);
-  };
-
-
-  template<typename T>
-  struct type_traits
-  {
-    enum { code_ = 29 /* "object" field id */ };
-    inline static size_t write( ostream& ostr, const T& ) { return 0;}
-    inline static size_t pack( ostream& ostr, const T&) { return 0;}
-  };
-
-  template<>
-  struct type_traits<uint64_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 16 };
-
-    inline static size_t write( ostream& ostr, const uint64_t& val) { 
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint64_t));
-      return sizeof(uint64_t); 
-    }
-
-    inline static size_t pack( ostream& ostr, const uint64_t&) { 
-      return 0;
-      }
-
-  };
-
-  template<>
-  struct type_traits<uint32_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 8 };
-
-    inline static size_t write( ostream& ostr, const uint32_t& val ) { 
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint32_t));
-      return sizeof(uint32_t); 
-     }
-
-    inline static size_t pack( ostream& ostr, const uint32_t&) { 
-      return 0;
-      }
-
-  };
-
-  template<>
-  struct type_traits<uint8_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 2 };
-    
-    inline static size_t write( ostream& ostr, const uint8_t& val ) { 
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint8_t));
-      return sizeof(uint8_t); 
-     }
-
-    inline static size_t pack( ostream& ostr, const uint8_t&) { 
-      return 0;
-      }
-
-  };
-
-  template<>
-  struct type_traits<std::string>
-  {
-    enum { code_ = 21 };
-
-    inline static size_t write( ostream& ostr, const std::string& ) { 
-      return 0; 
-    }
-
-    inline static size_t pack( ostream& ostr, const std::string&) { 
-      return 0;
-    }
-
-  };
-
-
-  template <typename T, class Enabler = void>
-  struct field_writer { 
-    static size_t write( ostream& ostr, uint8_t field_id, const T& value) { 
-      // object header
-      uint32_t object_size = 0; // TODO
-      ostr.write(reinterpret_cast<const char*>(&object_size), 4);
-
-      uint16_t class_id =  T::flexbin_class_id;
-      ostr.write(reinterpret_cast<const char*>(&class_id), 2);
-
-      // write fields
-      ostr << value;
-
-      const uint8_t end_marker = 255;
-      ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
-      return 0; 
-    }
-
-    static size_t pack( ostream& ostr, uint8_t field_id, const T& value) { 
-       return write(ostr, field_id, value);
-    }
-  };
-
-  template <>
-  struct field_writer<std::string, void> { 
-    static size_t write( ostream& ostr, uint8_t field_id, const std::string& value) { 
-       return type_traits<std::string>::write(ostr, value);
-    }
-    
-    static size_t pack( ostream& ostr, uint8_t field_id, const std::string& value) { 
-       return write(ostr, field_id, value);
-    }
-  };
-
-  template <typename T>
-  struct field_writer<T, std::enable_if_t<std::is_fundamental<T>::value> > { 
-    static size_t write( ostream& ostr, uint8_t field_id, const T& value) {  
-      return type_traits<T>::write(ostr, value);
-    }
-
-    static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
-      return type_traits<T>::pack(ostr, value);
-    }
-  };
-
-  template <typename T>
-  size_t field_write(ostream& ostr, uint8_t field_id, const T& value) { 
-    return field_writer<T>::write(ostr, field_id, value);
-  }
-  
-  template <typename T>
-  size_t field_pack(ostream& ostr, uint8_t field_id, const T& value) { 
-    return field_writer<T>::pack(ostr, field_id, value);
-  }
-
-  template<typename T>    
-  inline size_t write_fixed( ostream& ostr, uint8_t field_id,  const T& value) {
-    return field_write(ostr, field_id, value);
-  };
-
-  template<typename T>    
-  inline size_t write_required( ostream& ostr, uint8_t field_id, const T& value) {
-    uint8_t code = type_traits<T>::code_;
-    ostr.write(reinterpret_cast<const char*>(&code), 1);
-    ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-    return field_pack(ostr, field_id, value);
-  };
-
-  template<typename T>    
-  inline size_t write_optional( ostream& ostr,  uint8_t field_id, const T& value) {
-    if(type_traits<T> ::default_value_ == value) {
-     return 0;
-    }
-    uint8_t code = type_traits<T>::code_;
-    ostr.write(reinterpret_cast<const char*>(&code), 1);
-    ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-    return field_pack(ostr, field_id, value);
-  };
-
-  template<typename T>    
-  inline size_t write_simplified( ostream& ostr,  uint8_t field_id, const T& value) {
-    return type_traits<T>::write(ostr, value);
-  };
 
   // serializable class may not have fixed/required/optional/simplified section, 
   // so we need sfinae to detect it
@@ -319,16 +156,3 @@ namespace flexbin
   }
 } // namespace flexbin 
 
-#define FLEXBIN_CLASS_ID(id)  enum { flexbin_class_id = id };
-
-#define FLEXBIN_SERIALIZE_FIXED(...) \
-  auto flexbin_serialize_fixed() const { return std::forward_as_tuple(__VA_ARGS__); } \
-
-#define FLEXBIN_SERIALIZE_REQUIRED(...) \
-  auto flexbin_serialize_required() const { return std::forward_as_tuple(__VA_ARGS__); } \
-
-#define FLEXBIN_SERIALIZE_OPTIONAL(...) \
-  auto flexbin_serialize_optional() const { return std::forward_as_tuple(__VA_ARGS__); } 
-
-#define FLEXBIN_SERIALIZE_SIMPLIFIED(...) \
-  auto flexbin_serialize_simplified() const { return std::forward_as_tuple(__VA_ARGS__); } 

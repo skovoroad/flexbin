@@ -75,15 +75,17 @@ TEST(TestFlexbin, SimpleInOutEquality)
 // todo:
 // 1. compact value representation
 // + 2. flexbin fields encoding
-// 3. requered, fixed, optional, simplified
+// + 3. required, fixed, optional, simplified
 // 4. flexstring
 // 5. all types support
 // 6. tests
+// 7. write complex object string?
+// 8. reading...
+// 9. memalloc_buffer for streams
+
 
 // questions
-// why field id? it does nothing (if no optional or simplified)
-// fixed cannot be object or string (no place for length)
-// 
+// fixed cannot be supported for strings (no place for length)
 
 
 int main(int argc, char** argv)
