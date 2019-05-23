@@ -17,6 +17,7 @@ namespace test_data
   {
     uint64_t val64_;
     uint32_t val32_;
+    uint32_t val32_2_;
     uint8_t  val8_;
 
     test_substruct ss_;
@@ -26,6 +27,7 @@ namespace test_data
     FLEXBIN_SERIALIZE_FIXED(val32_)    
     FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)    
+    FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)    
   };
 
   inline bool operator==(const test_struct& lhs, const test_struct& rhs)
@@ -53,8 +55,8 @@ public:
 
 TEST(TestFlexbin, SimpleInOutEquality)
 {
-  test_data::test_struct a { 10^5, 1, 7, { "first"}};
-  test_data::test_struct b { 0, 1, 7, { "second"}};
+  test_data::test_struct a { 10^5, 1, 7, 77, { "first"}};
+  test_data::test_struct b { 0, 1, 7, 88,{ "second"}};
 
   std::filebuf fbuf;
   fbuf.open("/tmp/inout",std::ios_base::in | std::ios_base::out);
