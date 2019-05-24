@@ -60,7 +60,7 @@ int main(int argc, char** argv)
   fbin >> a;
 
   // todo:
-  // 1. compact value representation
+  // + 1. compact value representation
   // + 2. flexbin fields encoding
   // + 3. required, fixed, optional, simplified
   // 4. flexstring
@@ -70,7 +70,6 @@ int main(int argc, char** argv)
   // 8. reading...
   // 9. memalloc_buffer for streams
   // 10. Maybe optimize if only fixed fields?
-  // 11 strategies-> main header, hide in namespace
   /*
         to pack value we need to:
   1. get tuple of all descent types (from traits)

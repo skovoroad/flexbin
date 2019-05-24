@@ -8,7 +8,6 @@ namespace flexbin
   {
     enum { code_ = 29 /* "object" field id */ };
     inline static size_t write( std::basic_ostream<char>& ostr, const T& ) { return 0;}
-    inline static size_t pack( std::basic_ostream<char>& ostr, const T&) { return 0;}
   };
 
   template<>
@@ -29,10 +28,6 @@ namespace flexbin
       ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint64_t));
       return sizeof(uint64_t); 
     }
-
-    inline static size_t pack( std::basic_ostream<char>& ostr, const uint64_t&) { 
-      return 0;
-      }
   };
 
   template<>
@@ -45,10 +40,6 @@ namespace flexbin
       ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint32_t));
       return sizeof(uint32_t); 
      }
-
-    inline static size_t pack( std::basic_ostream<char>& ostr, const uint32_t&) { 
-      return 0;
-      }
 
     inline static auto candidates(const uint32_t& value)  {
       return std::make_tuple(
@@ -69,17 +60,11 @@ namespace flexbin
       return sizeof(uint8_t); 
      }
 
-    inline static size_t pack( std::basic_ostream<char>& ostr, const uint8_t&) { 
-      return 0;
-      }
-
     inline static auto candidates(const uint8_t& value) {
       return std::make_tuple(
         static_cast<uint8_t>(value)
       );
     }
-
-
   };
 
   template<>

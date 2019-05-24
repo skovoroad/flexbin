@@ -45,7 +45,6 @@ namespace flexbin
 
 ///////////////////
 // Write methods selector for different field types: fundamental, std::string or struct/class
-
   template <typename T, class Enabler = void>
   struct field_writer { 
 
@@ -125,9 +124,8 @@ namespace flexbin
 
   template<typename T>    
   inline size_t write_optional( ostream& ostr,  uint8_t field_id, const T& value) {
-    if(type_traits<T> ::default_value_ == value) {
+    if(type_traits<T> ::default_value_ == value) 
      return 0;
-    }
     return  field_writer<T>::pack(ostr, field_id, value);
   };
 
