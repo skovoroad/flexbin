@@ -1,4 +1,4 @@
-#include <fstream>
+#include <sstream>
 #include "flexbin.hpp"
 
 namespace test_data
@@ -50,8 +50,8 @@ int main(int argc, char** argv)
   test_data::test_struct a { 10^5, 1, 7, 77, { "first"}};
   test_data::test_struct b { 0, 1, 7, 88,{ "second"}};
 
-  std::filebuf fbuf;
-  fbuf.open("/tmp/inout",std::ios_base::in | std::ios_base::out);
+  std::stringbuf fbuf;
+  //fbuf.open("/tmp/inout",std::ios_base::in | std::ios_base::out);
   flexbin::istream fbin(&fbuf);
   flexbin::ostream fbout(&fbuf);
 

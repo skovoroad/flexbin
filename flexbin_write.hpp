@@ -1,4 +1,5 @@
 #pragma once
+#include <assert.h>
 #include "flexbin_streams.hpp"
 
 namespace flexbin
@@ -46,6 +47,11 @@ namespace flexbin
     static size_t write( ostream& ostr, uint8_t field_id, const T& value) { 
       // object header
       uint32_t object_size = 0; // TODO
+      auto object_size_pos = ostr.tellp();
+
+      if (object_size_pos < 0)
+        throw( std::ios_base::failure("inapproriate type of buffer doesn't suppor ") );
+
       ostr.write(reinterpret_cast<const char*>(&object_size), 4);
 
       uint16_t class_id =  T::flexbin_class_id;
@@ -56,6 +62,16 @@ namespace flexbin
 
       const uint8_t end_marker = 255;
       ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
+
+      auto object_end_pos = ostr.tellp();
+      assert(object_end_pos > object_size_pos);
+
+      object_size = static_cast<uint32_t>(object_end_pos - object_size_pos);
+      
+      ostr.seekp(object_size_pos);
+      ostr.write(reinterpret_cast<const char*>(&object_size), 4);
+      ostr.seekp(object_end_pos);
+
       return 0; 
     }
 
