@@ -189,18 +189,37 @@ namespace flexbin
 #endif
   };
 
+  template<typename T>
+  struct flexbin_reader
+  {
+    uint8_t field_id = 0;
+
+    constexpr static bool required_fields_exists = (has_required_fields<T>::yes != 0);
+    constexpr static bool optional_fields_exists = (has_optional_fields<T>::yes != 0);
+    constexpr static bool fixed_fields_exists = (has_fixed_fields<T>::yes != 0);
+    constexpr static bool simplified_fields_exists = (has_simplified_fields<T>::yes != 0);
+  };
+
 
   template<typename T>
   std::basic_ostream<char>& ostream::operator<< (const T& obj)
   {
-    {
-      flexbin_writer<T> writer;
-      writer.write_fixed_fields(*this, obj);
-      writer.write_required_fields(*this, obj);
-      writer.write_optional_fields(*this, obj);
-      writer.write_simplified_fields(*this, obj);
-    }
+    flexbin_writer<T> writer;
+    
+    writer.write_fixed_fields(*this, obj); // fixed fields goes first
+
+    writer.write_required_fields(*this, obj);
+    writer.write_optional_fields(*this, obj);
+    writer.write_simplified_fields(*this, obj);
+
     return *this;
   }
+
+  template<typename T>
+  std::basic_istream<char>& istream::operator>> (T& obj)
+  {
+    return *this;
+  }
+
 } // namespace flexbin 
 

@@ -9,11 +9,7 @@ namespace flexbin
     {
     }
 
-    template<typename T>
-    std::basic_istream<char>& operator>> ( T& )
-    {
-      return *this;
-    }
+    template<typename T> std::basic_istream<char>& operator>> (T&);
   };
 
   struct ostream : public std::basic_ostream<char>
