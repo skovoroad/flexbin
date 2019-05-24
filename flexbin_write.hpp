@@ -12,16 +12,20 @@ namespace flexbin
   template<typename T, typename candidateT>
   void pack_if_equal(std::basic_ostream<char>& ostr,
     const T& value,
-    size_t & already,
+    size_t & nbytes,
     uint8_t field_id,
     const candidateT& candidate
   ) {
-    if (already > 0)
+    if (nbytes > 0) // already packed with smaller type
       return;
     if (value == candidate)
     {
-      // pack candidate with its own type
-      already = 1; // nbytes!!!
+      uint8_t code = type_traits<candidateT>::code_;
+      nbytes = sizeof(candidateT);
+      ostr.write(reinterpret_cast<const char*>(&code), 1);
+      ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      ostr.write(reinterpret_cast<const char*>(&candidate), nbytes);
+      
     }
   }
 
@@ -44,7 +48,8 @@ namespace flexbin
 
   template <typename T, class Enabler = void>
   struct field_writer { 
-    static size_t write( ostream& ostr, uint8_t field_id, const T& value) { 
+
+    static size_t write( ostream& ostr, const T& value) { 
       // object header
       uint32_t object_size = 0; // TODO
       auto object_size_pos = ostr.tellp();
@@ -76,24 +81,27 @@ namespace flexbin
     }
 
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) { 
-       return write(ostr, field_id, value);
+       // no sense to pack structure/calss
+       return write(ostr, value);
     }
   };
 
   template <>
   struct field_writer<std::string, void> { 
-    static size_t write( ostream& ostr, uint8_t field_id, const std::string& value) { 
+
+    static size_t write( ostream& ostr, const std::string& value) { 
        return type_traits<std::string>::write(ostr, value);
     }
     
     static size_t pack( ostream& ostr, uint8_t field_id, const std::string& value) { 
-       return write(ostr, field_id, value);
+       return write(ostr, value);
     }
   };
 
   template <typename T>
   struct field_writer<T, std::enable_if_t<std::is_fundamental<T>::value> > { 
-    static size_t write( ostream& ostr, uint8_t field_id, const T& value) {  
+
+    static size_t write( ostream& ostr, const T& value) {  
       return type_traits<T>::write(ostr, value);
     }
 
@@ -107,14 +115,11 @@ namespace flexbin
 // Write strategies: fixes, optional, required, simplified
   template<typename T>    
   inline size_t write_fixed( ostream& ostr, uint8_t field_id,  const T& value) {
-    return field_writer<T>::write(ostr, field_id, value);
+    return field_writer<T>::write(ostr, value);
   };
 
   template<typename T>    
   inline size_t write_required( ostream& ostr, uint8_t field_id, const T& value) {
-    uint8_t code = type_traits<T>::code_;
-    ostr.write(reinterpret_cast<const char*>(&code), 1);
-    ostr.write(reinterpret_cast<const char*>(&field_id), 1);
     return field_writer<T>::pack(ostr, field_id, value);
   };
 
@@ -123,14 +128,14 @@ namespace flexbin
     if(type_traits<T> ::default_value_ == value) {
      return 0;
     }
-    uint8_t code = type_traits<T>::code_;
-    ostr.write(reinterpret_cast<const char*>(&code), 1);
-    ostr.write(reinterpret_cast<const char*>(&field_id), 1);
     return  field_writer<T>::pack(ostr, field_id, value);
   };
 
   template<typename T>    
   inline size_t write_simplified( ostream& ostr,  uint8_t field_id, const T& value) {
+    uint8_t code = type_traits<T>::code_;
+    ostr.write(reinterpret_cast<const char*>(&code), 1);
+    ostr.write(reinterpret_cast<const char*>(&field_id), 1);
     return type_traits<T>::write(ostr, value);
   };
 } //namespace flexbin
