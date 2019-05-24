@@ -25,11 +25,11 @@ namespace flexbin
     auto pack_versions = type_traits<T>::candidates(value);
     size_t packed_nbytes = 0;
 
-    auto pack_candidates = [=](auto&&... args) {
+    auto pack_candidates = [&](auto&&... args) {
       ((pack_if_equal(ostr, value, packed_nbytes, field_id, args)), ...);
     };
 
-    std::apply(pack_candidates, pack_if_equal);
+    std::apply(pack_candidates, pack_versions);
     return packed_nbytes;
   }
 ///////////////////
@@ -77,10 +77,10 @@ namespace flexbin
 
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
       //return type_traits<T>::pack(ostr, value);
-      return pack_value(ostr, value);
+      return pack_value(ostr, value, field_id);
     }
   };
-
+//////////////////////////
   template <typename T>
   size_t field_write(ostream& ostr, uint8_t field_id, const T& value) { 
     return field_writer<T>::write(ostr, field_id, value);
@@ -91,6 +91,8 @@ namespace flexbin
   size_t field_pack(ostream& ostr, uint8_t field_id, const T& value) { 
     return field_writer<T>::pack(ostr, field_id, value);
   }
+//////////////////////////
+
   template<typename T>    
   inline size_t write_fixed( ostream& ostr, uint8_t field_id,  const T& value) {
     return field_write(ostr, field_id, value);

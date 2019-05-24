@@ -17,7 +17,7 @@ namespace flexbin
     enum { default_value_ = 0 };
     enum { code_ = 16 };
 
-    inline auto candidates(const uint64_t& value) const{
+    inline static auto candidates(const uint64_t& value) {
       return std::make_tuple(
         static_cast<uint8_t>(value),
         static_cast<uint16_t>(value),
@@ -50,7 +50,7 @@ namespace flexbin
       return 0;
       }
 
-    inline auto candidates(const uint32_t& value) const {
+    inline static auto candidates(const uint32_t& value)  {
       return std::make_tuple(
         static_cast<uint8_t>(value),
         static_cast<uint16_t>(value)
@@ -73,7 +73,7 @@ namespace flexbin
       return 0;
       }
 
-    inline auto candidates(const uint8_t& value) const {
+    inline static auto candidates(const uint8_t& value) {
       return std::make_tuple(
         static_cast<uint8_t>(value)
       );
