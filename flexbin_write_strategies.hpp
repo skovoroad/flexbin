@@ -4,13 +4,17 @@
 namespace flexbin
 {
 ////////////////////
+// function to "pack" value of fundamental type: f.e. write "small" uint64_t value as uint8_t value
+// pack_if_equal - write value, if "small" equal to "big" value
+// pack_value - iterate through "smaller" types to pack "bigger"
+
   template<typename T, typename candidateT>
   void pack_if_equal(std::basic_ostream<char>& ostr,
     const T& value,
     size_t & already,
     uint8_t field_id,
     const candidateT& candidate
-    ) {
+  ) {
     if (already > 0)
       return;
     if (value == candidate)
@@ -22,6 +26,7 @@ namespace flexbin
 
   template<typename T>
   size_t pack_value(std::basic_ostream<char>& ostr, const T& value, uint8_t field_id) {
+
     auto pack_versions = type_traits<T>::candidates(value);
     size_t packed_nbytes = 0;
 
@@ -32,8 +37,9 @@ namespace flexbin
     std::apply(pack_candidates, pack_versions);
     return packed_nbytes;
   }
-///////////////////
 
+///////////////////
+// Write methods selector for different field types: fundamental, std::string or struct/class
 
   template <typename T, class Enabler = void>
   struct field_writer { 
@@ -80,22 +86,12 @@ namespace flexbin
       return pack_value(ostr, value, field_id);
     }
   };
-//////////////////////////
-  template <typename T>
-  size_t field_write(ostream& ostr, uint8_t field_id, const T& value) { 
-    return field_writer<T>::write(ostr, field_id, value);
-  }
-  
-  
-  template <typename T>
-  size_t field_pack(ostream& ostr, uint8_t field_id, const T& value) { 
-    return field_writer<T>::pack(ostr, field_id, value);
-  }
-//////////////////////////
 
+//////////////////////////
+// Write strategies: fixes, optional, required, simplified
   template<typename T>    
   inline size_t write_fixed( ostream& ostr, uint8_t field_id,  const T& value) {
-    return field_write(ostr, field_id, value);
+    return field_writer<T>::write(ostr, field_id, value);
   };
 
   template<typename T>    
@@ -103,7 +99,7 @@ namespace flexbin
     uint8_t code = type_traits<T>::code_;
     ostr.write(reinterpret_cast<const char*>(&code), 1);
     ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-    return field_pack(ostr, field_id, value);
+    return field_writer<T>::pack(ostr, field_id, value);
   };
 
   template<typename T>    
@@ -114,7 +110,7 @@ namespace flexbin
     uint8_t code = type_traits<T>::code_;
     ostr.write(reinterpret_cast<const char*>(&code), 1);
     ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-    return field_pack(ostr, field_id, value);
+    return  field_writer<T>::pack(ostr, field_id, value);
   };
 
   template<typename T>    
