@@ -5,7 +5,7 @@
 #include <string>
 
 #include "flexbin_type_traits.hpp"
-#include "flexbin_write_strategies.hpp"
+#include "flexbin_write.hpp"
 #include "flexbin_streams.hpp"
 
 #define FLEXBIN_CLASS_ID(id)  enum { flexbin_class_id = id };
