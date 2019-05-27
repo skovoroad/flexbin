@@ -206,7 +206,7 @@ namespace flexbin
     }
 #else
    // Write required fields if exists
-    template<typename C = success_ >
+    template<typename C = bool >
     typename std::enable_if< required_fields_exists , C>::type
     write_required_fields(ostream& ostr, const T& obj) {
       auto field_serializer_required = [this, &ostr](auto&&... args) { 
