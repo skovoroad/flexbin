@@ -146,6 +146,7 @@ namespace flexbin
   {
     uint8_t field_id = 0;
     std::streampos object_size_pos;
+    bool success_ = true;
 
     constexpr static bool required_fields_exists = (has_required_fields<T>::yes != 0);
     constexpr static bool optional_fields_exists = (has_optional_fields<T>::yes != 0);
@@ -186,121 +187,121 @@ namespace flexbin
 
 #ifdef _MSC_VER 
     // fuck this shit! MSVC cannot to proper template arguments deducing
-    size_t write_required_fields(ostream& ostr, const T& obj) {
+    bool write_required_fields(ostream& ostr, const T& obj) {
       __if_exists(T::flexbin_serialize_required)
       {
         auto field_serializer_required = [this, &ostr](auto&&... args) {
-          ((write_required(ostr, ++field_id, args)), ...);
+          ((success_ = success_ && write_required(ostr, ++field_id, args)), ...);
         };
         std::apply(field_serializer_required, obj.flexbin_serialize_required());
       }
-      return 0;
+      return success_ ;
     }
 
-    size_t write_optional_fields(ostream& ostr, const T& obj) {
+    bool write_optional_fields(ostream& ostr, const T& obj) {
       __if_exists(T::flexbin_serialize_optional)
       {
         auto field_serializer_optional = [this, &ostr](auto&&... args) {
-          ((write_optional(ostr, ++field_id, args)), ...);
+          ((success_  = success_ && write_optional(ostr, ++field_id, args)), ...);
         };
         std::apply(field_serializer_optional, obj.flexbin_serialize_optional());
       }
-      return 0;
+      return success_;
     }
 
     // Write fixed fields if exists
-    size_t write_fixed_fields(ostream& ostr, const T& obj) {
+    bool write_fixed_fields(ostream& ostr, const T& obj) {
       __if_exists(T::flexbin_serialize_fixed)
       {
         auto field_serializer_fixed = [this, &ostr](auto&&... args) {
-          ((write_fixed(ostr, ++field_id, args)), ...);
+          ((success_ = success_ && write_fixed(ostr, ++field_id, args)), ...);
         };
         std::apply(field_serializer_fixed, obj.flexbin_serialize_fixed());
       }
-      return 0;
+      return success_;
     }
 
-    size_t write_simplified_fields(ostream& ostr, const T& obj) {
+    bool write_simplified_fields(ostream& ostr, const T& obj) {
       __if_exists(T::flexbin_serialize_simplified)
       {
         auto field_serializer_simplified = [this, &ostr](auto&&... args) {
-          ((write_simplified(ostr, ++field_id, args)), ...);
+          ((success_  = success_ && write_simplified(ostr, ++field_id, args)), ...);
         };
         std::apply(field_serializer_simplified, obj.flexbin_serialize_simplified());
       }
-      return 0;
+      return success_;
     }
 #else
    // Write required fields if exists
-    template<typename C = size_t>
+    template<typename C = success_ >
     typename std::enable_if< required_fields_exists , C>::type
     write_required_fields(ostream& ostr, const T& obj) {
       auto field_serializer_required = [this, &ostr](auto&&... args) { 
-          ( ( write_required(ostr, ++field_id,  args) ) , ... );
+          ( (success_  = success_ && write_required(ostr, ++field_id,  args) ) , ... );
         };
       std::apply( field_serializer_required, obj.flexbin_serialize_required());
-      return 0;
+      return success_;
     }
 
    // Write required fields if not exists
-    template<typename C = size_t>
+    template<typename C = bool>
     typename std::enable_if< !required_fields_exists , C >::type
     write_required_fields( ostream& ostr, const T& obj ) {
-      return 0;
+      return success_;
     }
 
    // Write optional fields if exists
-    template<typename C = size_t>
+    template<typename C = bool>
     typename std::enable_if< optional_fields_exists , C>::type
     write_optional_fields(ostream& ostr, const T& obj) {
       auto field_serializer_optional = [this, &ostr](auto&&... args) { 
-          ( ( write_optional(ostr, ++field_id,  args) ) , ... );
+          ( (success_  = success_ && write_optional(ostr, ++field_id,  args) ) , ... );
         };
       std::apply( field_serializer_optional, obj.flexbin_serialize_optional());
-      return 0;
+      return success_;
     }
 
    // Write optional fields if not exists
-    template<typename C = size_t>
+    template<typename C = bool>
     typename std::enable_if< !optional_fields_exists , C >::type
     write_optional_fields( ostream& ostr, const T& obj ) {
-      return 0;
+      return true;
     }
 
    // Write fixed fields if exists
-    template<typename C = size_t>
+    template<typename C = bool>
     typename std::enable_if< fixed_fields_exists , C>::type
     write_fixed_fields(ostream& ostr, const T& obj) {
       auto field_serializer_fixed = [this, &ostr](auto&&... args) { 
-          ( ( write_fixed(ostr, ++field_id,  args) ) , ... );
+          ( (success_ = success_ && write_fixed(ostr, ++field_id,  args) ) , ... );
         };
       std::apply( field_serializer_fixed, obj.flexbin_serialize_fixed());
-      return 0;
+      return success_;
     }
 
    // Write fixed fields if not exists
-    template<typename C = size_t>
+    template<typename C = bool>
     typename std::enable_if< !fixed_fields_exists , C >::type
     write_fixed_fields( ostream& ostr, const T& obj ) {
-      return 0;
+      return success_;
     }
 
    // Write simplified fields if exists
-    template<typename C = size_t>
+    template<typename C = bool>
     typename std::enable_if< simplified_fields_exists , C>::type
     write_simplified_fields(ostream& ostr, const T& obj) {
       auto field_serializer_simplified = [this, &ostr](auto&&... args) { 
-          ( ( write_simplified(ostr, ++field_id,  args) ) , ... );
+          ( (success_  = success_ && write_simplified(ostr, ++field_id,  args) ) , ... );
         };
       std::apply( field_serializer_simplified, obj.flexbin_serialize_simplified());
-      return 0;
+      return success_;
     }
 
    // Write simplified fields if exists
-    template<typename C = size_t>
+    template<typename C = bool>
     typename std::enable_if< !simplified_fields_exists , C >::type
     write_simplified_fields( ostream& ostr, const T& obj ) {
-      return 0;
+      return true;
     }
 #endif
   };
