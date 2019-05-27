@@ -49,6 +49,7 @@ namespace flexbin
   struct field_writer { 
 
     static size_t write( ostream& ostr, const T& value) { 
+      /*
       // object header
       uint32_t object_size = 0; // TODO
       auto object_size_pos = ostr.tellp();
@@ -60,10 +61,10 @@ namespace flexbin
 
       uint16_t class_id =  T::flexbin_class_id;
       ostr.write(reinterpret_cast<const char*>(&class_id), 2);
-
+      */
       // write fields
       ostr << value;
-
+      /*
       const uint8_t end_marker = 255;
       ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
 
@@ -75,7 +76,7 @@ namespace flexbin
       ostr.seekp(object_size_pos);
       ostr.write(reinterpret_cast<const char*>(&object_size), 4);
       ostr.seekp(object_end_pos);
-
+      */
       return 0; 
     }
 
@@ -144,11 +145,44 @@ namespace flexbin
   struct flexbin_writer
   {
     uint8_t field_id = 0;
+    std::streampos object_size_pos;
 
     constexpr static bool required_fields_exists = (has_required_fields<T>::yes != 0);
     constexpr static bool optional_fields_exists = (has_optional_fields<T>::yes != 0);
     constexpr static bool fixed_fields_exists    = (has_fixed_fields<T>::yes != 0);
     constexpr static bool simplified_fields_exists = (has_simplified_fields<T>::yes != 0);
+
+    // object header
+    bool write_header(ostream& ostr, const T& obj)
+    {
+      uint32_t object_size = 0; // TODO
+      object_size_pos = ostr.tellp();
+
+      if (object_size_pos < 0)
+        throw(std::ios_base::failure("inapproriate type of buffer doesn't support rewind "));
+
+      ostr.write(reinterpret_cast<const char*>(&object_size), 4);
+
+      uint16_t class_id = T::flexbin_class_id;
+      ostr.write(reinterpret_cast<const char*>(&class_id), 2);
+      return object_size_pos;
+    }
+
+    bool write_bottom(ostream& ostr, const T& obj)
+    {
+      const uint8_t end_marker = 255;
+      ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
+
+      auto object_end_pos = ostr.tellp();
+      assert(object_end_pos > object_size_pos);
+
+      auto object_size = static_cast<uint32_t>(object_end_pos - object_size_pos);
+
+      ostr.seekp(object_size_pos);
+      ostr.write(reinterpret_cast<const char*>(&object_size), 4);
+      ostr.seekp(object_end_pos);
+      return true;
+    }
 
 #ifdef _MSC_VER 
     // fuck this shit! MSVC cannot to proper template arguments deducing

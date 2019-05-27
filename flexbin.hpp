@@ -34,13 +34,13 @@ namespace flexbin
   std::basic_ostream<char>& ostream::operator<< (const T& obj)
   {
     flexbin_writer<T> writer;
-    
+    writer.write_header(*this, obj);
     writer.write_fixed_fields(*this, obj); // fixed fields goes first
 
     writer.write_required_fields(*this, obj);
     writer.write_optional_fields(*this, obj);
     writer.write_simplified_fields(*this, obj);
-
+    writer.write_bottom(*this, obj);
     return *this;
   }
 
