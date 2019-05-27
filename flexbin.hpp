@@ -51,8 +51,13 @@ namespace flexbin
   {
     flexbin_reader<T> reader;
 
-    if(!reader.read_required_fields(*this, obj))
-      throw( std::ios_base::failure("malformed object") ); // NO! set bad bit!
+    if (! (reader.read_header(*this, obj) &&
+           reader.read_required_fields(*this, obj) &&
+           reader.read_bottom(*this, obj)) ) 
+    {
+      setstate(rdstate() & std::ios_base::badbit);
+    }
+
     return *this;
   }
 
