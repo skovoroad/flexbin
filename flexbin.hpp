@@ -6,6 +6,7 @@
 
 #include "flexbin_type_traits.hpp"
 #include "flexbin_write.hpp"
+#include "flexbin_read.hpp"
 #include "flexbin_streams.hpp"
 
 #define FLEXBIN_CLASS_ID(id)  enum { flexbin_class_id = id };
@@ -42,6 +43,10 @@ namespace flexbin
   template<typename T>
   std::basic_istream<char>& istream::operator>> (T& obj)
   {
+    flexbin_reader<T> reader;
+
+    if(!reader.read(*this, obj))
+      throw( std::ios_base::failure("malformed object") );
     return *this;
   }
 

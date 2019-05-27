@@ -18,7 +18,7 @@ namespace flexbin
    // Read fixed fields if exists
     template<typename C = size_t>
     typename std::enable_if< fixed_fields_exists , C>::type
-    read_fixed_fields(ostream& ostr, const T& obj) {
+    read_required_fields(istream& ostr, const T& obj) {
 /*      auto field_serializer_fixed = [this, &ostr](auto&&... args) { 
           ( ( write_fixed(ostr, ++field_id,  args) ) , ... );
         };
@@ -29,9 +29,17 @@ namespace flexbin
    // Write fixed fields if not exists
     template<typename C = size_t>
     typename std::enable_if< !fixed_fields_exists , C >::type
-    read_fixed_fields( ostream& ostr, const T& obj ) {
+    read_required_fields( istream& ostr, const T& obj ) {
       return 0;
     }
 
+    bool read( istream& ostr, const T& obj ) {
+      size_t nbytes_remain(0);
+      ostr.read(reinterpret_cast<char *>(nbytes_remain), sizeof(nbytes_remain));
+      if(ostr.fail() || ostr.eof())
+        return 0;
+    }  
+
   };
+
 }
