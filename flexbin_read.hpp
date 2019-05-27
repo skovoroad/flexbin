@@ -10,16 +10,16 @@ namespace flexbin
   template <typename T, class Enabler = void>
   struct field_reader {
 
-    static bool read(istream& istr, uint8_t field_id, const T& value) {
-      //istr >> value;
-      ???
+    static bool read(istream& istr, uint8_t field_id,  T& value) {
+      istr >> value;
+      //???
       return true;
     }
   };
 
   template <>
   struct field_reader<std::string, void> {
-    static bool read(istream& istr, uint8_t field_id, const std::string& value) {
+    static bool read(istream& istr, uint8_t field_id,  std::string& value) {
       //return type_traits<std::string>::write(ostr, value);
       return false;
     }
@@ -28,7 +28,7 @@ namespace flexbin
   template <typename T>
   struct field_reader<T, std::enable_if_t<std::is_fundamental<T>::value> > {
 
-    static bool read(istream& istr, uint8_t field_id, const T& value) {
+    static bool read(istream& istr, uint8_t field_id,  T& value) {
       //return type_traits<T>::write(ostr, value);
       return false;
     }
@@ -39,7 +39,7 @@ namespace flexbin
   //////////////////////////
   // Write strategies: fixes, optional, required, simplified
   template<typename T>
-  inline bool read_required(istream& istr, uint8_t field_id, const T& value) {
+  inline bool read_required(istream& istr, uint8_t field_id, T& value) {
     return field_reader<T>::read(istr, field_id, value);
   };
 
@@ -89,11 +89,11 @@ namespace flexbin
     }
 #endif
 
-    bool read_header( istream& ostr, const T& obj ) {
+    bool read_header( istream& ostr,  T& obj ) {
       return false;
     }  
 
-    bool read_bottom(istream& ostr, const T& obj) {
+    bool read_bottom(istream& ostr,  T& obj) {
       return false;
     }
   };
