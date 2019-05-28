@@ -245,7 +245,7 @@ namespace flexbin
     typename std::enable_if< fixed_fields_exists , C>::type
     write_fixed_fields(ostream& ostr, const T& obj) {
       auto field_serializer_fixed = [this, &ostr](auto&&... args) { 
-          ( (success_ = success_ && write_fixed(ostr, ++field_id,  args) ) , ... );
+          ( (success_ = success_ && write_fixed(ostr, args) ) , ... );
         };
       std::apply( field_serializer_fixed, obj.flexbin_serialize_fixed());
       return success_;

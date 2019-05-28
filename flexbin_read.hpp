@@ -173,6 +173,24 @@ namespace flexbin
     // Read fixed fields if exists
     template<typename C = bool>
     typename std::enable_if< fixed_fields_exists , C>::type
+    read_fixed_fields(istream& ostr, T& obj) {
+      auto field_deserializer_fixed = [this, &ostr](auto&&... args) { 
+          ( (success_ = success_ && read_fixed(ostr,  args) ) , ... );
+        };
+      std::apply(field_deserializer_fixed, obj.flexbin_deserialize_fixed());
+      return success_;
+    }
+
+   // Read fixed fields if not exists
+    template<typename C = bool>
+    typename std::enable_if< !fixed_fields_exists , C >::type
+    read_fixed_fields( istream& ostr, T& obj ) {
+      return true;
+    }
+
+    // Read required fields if exists
+    template<typename C = bool>
+    typename std::enable_if< required_fields_exists , C>::type
     read_required_fields(istream& ostr, T& obj) {
       auto field_deserializer_required = [this, &ostr](auto&&... args) { 
           ( (success_ = success_ && read_required(ostr, ++field_id,  args) ) , ... );
@@ -181,12 +199,49 @@ namespace flexbin
       return success_;
     }
 
-   // Read fixed fields if not exists
+   // Read required fields if not exists
     template<typename C = bool>
-    typename std::enable_if< !fixed_fields_exists , C >::type
-    read_required_fields( istream& ostr, const T& obj ) {
+    typename std::enable_if< !required_fields_exists , C >::type
+    read_required_fields( istream& ostr, T& obj ) {
       return true;
     }
+
+    // Read optional fields if exists
+    template<typename C = bool>
+    typename std::enable_if< optional_fields_exists , C>::type
+    read_optional_fields(istream& ostr, T& obj) {
+      auto field_deserializer_optional = [this, &ostr](auto&&... args) { 
+          ( (success_ = success_ && read_optional(ostr, ++field_id,  args) ) , ... );
+        };
+      std::apply(field_deserializer_optional, obj.flexbin_deserialize_optional());
+      return success_;
+    }
+
+   // Read optional fields if not exists
+    template<typename C = bool>
+    typename std::enable_if< !optional_fields_exists , C >::type
+    read_optional_fields( istream& ostr, T& obj ) {
+      return true;
+    }
+
+    // Read simplified fields if exists
+    template<typename C = bool>
+    typename std::enable_if< simplified_fields_exists , C>::type
+    read_simplified_fields(istream& ostr, T& obj) {
+      auto field_deserializer_simplified = [this, &ostr](auto&&... args) { 
+          ( (success_ = success_ && read_simplified(ostr, ++field_id,  args) ) , ... );
+        };
+      std::apply(field_deserializer_simplified, obj.flexbin_deserialize_simplified());
+      return success_;
+    }
+
+   // Read simplified fields if not exists
+    template<typename C = bool>
+    typename std::enable_if< !fixed_fields_exists , C >::type
+    read_simplified_fields( istream& ostr, T& obj ) {
+      return true;
+    }
+
 #endif
 
     bool read_header( istream& istr,  T& obj ) {
