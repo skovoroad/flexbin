@@ -25,7 +25,8 @@ namespace test_data
     FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
+//    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
+    FLEXBIN_SERIALIZE_REQUIRED(val64_)
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)
     FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
 
@@ -78,7 +79,7 @@ int main(int argc, char** argv)
   std::cout << "Buffer: ";
   std::ios_base::fmtflags f(std::cout.flags());
   for (size_t i = 0; i < fbuf.str().size(); ++i)
-    std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned) fbuf.str()[i] << " ";
+    std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) fbuf.str()[i] << " ";
   std::cout << std::endl;
   std::cout.flags(f);
 

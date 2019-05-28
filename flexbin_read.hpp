@@ -5,6 +5,38 @@
 
 namespace flexbin
 {
+  template<typename T, typename candidateT>
+  inline void unpack_if_type_matches(std::basic_istream<char>& istr,
+    size_t & nbytes,
+    uint8_t type_code,
+    T& value,
+    const candidateT& phony
+  ) {
+    if (nbytes > 0) // already unpacked 
+      return;
+    if (type_traits<T>::code_ != type_code)
+      return;
+
+    candidateT candidate_value;
+    type_traits<candidateT>::read(istr, candidate_value);
+    nbytes = sizeof(candidateT);
+    value = candidate_value;
+  }
+
+  template<typename T>
+  size_t unpack_value(std::basic_istream<char>& istr, uint8_t type, T& value) {
+
+    auto pack_versions = type_traits<T>::candidates(value);
+    size_t unpacked_nbytes = 0;
+
+    auto pack_candidates = [&](auto&&... args) {
+      ((unpack_if_type_matches(istr, unpacked_nbytes, type, value,  args)), ...);
+    };
+
+    std::apply(pack_candidates, pack_versions);
+    return unpacked_nbytes;
+  }
+
   ///////////////////
   // Read methods selector for different field types: fundamental, std::string or struct/class
   template <typename T, class Enabler = void>
@@ -48,7 +80,8 @@ namespace flexbin
       return false;
     if (id != field_id)
       return false;
-    return field_reader<T>::read(istr, value);
+    //return field_reader<T>::read(istr, value);  // NO! read real type, not T
+    return unpack_value(istr, type, value);
   };
 
   template<typename T>
@@ -60,7 +93,8 @@ namespace flexbin
       value = type_traits<T>::default_value_;
       return true;
     }
-    return field_reader<T>::read(istr, value);
+//    return field_reader<T>::read(istr, value); // NO! read real type, not T
+    return unpack_value(istr, type, value);
   };
 
   template<typename T>
@@ -72,7 +106,8 @@ namespace flexbin
       value = type_traits<T>::default_value_;
       return true;
     }
-    return field_reader<T>::read(istr, value);
+  //  return field_reader<T>::read(istr, value); // NO! read real type, not T
+    return unpack_value(istr, type, value);
   };
 
   ///////////////////////////

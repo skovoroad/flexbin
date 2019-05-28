@@ -20,7 +20,8 @@ namespace flexbin
       return std::make_tuple(
         static_cast<uint8_t>(value),
         static_cast<uint16_t>(value),
-        static_cast<uint32_t>(value)
+        static_cast<uint32_t>(value),
+        static_cast<uint64_t>(value)
       );
     }
 
@@ -54,7 +55,8 @@ namespace flexbin
     inline static auto candidates(const uint32_t& value)  {
       return std::make_tuple(
         static_cast<uint8_t>(value),
-        static_cast<uint16_t>(value)
+        static_cast<uint16_t>(value),
+        static_cast<uint32_t>(value)
       );
     }
   };
@@ -77,7 +79,8 @@ namespace flexbin
 
     inline static auto candidates(const uint16_t& value) {
       return std::make_tuple(
-        static_cast<uint8_t>(value)
+        static_cast<uint8_t>(value),
+        static_cast<uint16_t>(value)
       );
     }
   };
