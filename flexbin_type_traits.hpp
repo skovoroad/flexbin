@@ -7,7 +7,7 @@ namespace flexbin
   struct type_traits
   {
     enum { code_ = 29 /* "object" field id */ };
-    inline static size_t write( std::basic_ostream<char>& ostr, const T& ) { return 0;}
+    //inline static size_t write( std::basic_ostream<char>& ostr, const T& ) { return 0;}
   };
 
   template<>
@@ -28,6 +28,11 @@ namespace flexbin
       ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint64_t));
       return sizeof(uint64_t); 
     }
+
+    inline static bool read(std::basic_istream<char>& istr, uint64_t& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(uint64_t));
+      return istr.good();
+    }
   };
 
   template<>
@@ -40,6 +45,11 @@ namespace flexbin
       ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint32_t));
       return sizeof(uint32_t); 
      }
+
+    inline static bool read(std::basic_istream<char>& istr, uint32_t& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(uint32_t));
+      return istr.good();
+    }
 
     inline static auto candidates(const uint32_t& value)  {
       return std::make_tuple(
@@ -60,6 +70,11 @@ namespace flexbin
       return sizeof(uint8_t); 
      }
 
+    inline static bool read(std::basic_istream<char>& istr, uint8_t& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(uint8_t));
+      return istr.good();
+    }
+
     inline static auto candidates(const uint8_t& value) {
       return std::make_tuple(
         static_cast<uint8_t>(value)
@@ -75,5 +90,10 @@ namespace flexbin
     inline static size_t write( std::basic_ostream<char>& ostr, const std::string& ) { 
       return 0; 
     }
+
+    inline static bool read(std::basic_istream<char>& istr, std::string& val) {
+      return istr.good();
+    }
+
   };
 } // namespace flexbin

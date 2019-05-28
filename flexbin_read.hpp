@@ -20,8 +20,7 @@ namespace flexbin
   template <>
   struct field_reader<std::string, void> {
     static bool read(istream& istr, uint8_t field_id,  std::string& value) {
-      //return type_traits<std::string>::write(ostr, value);
-      return false;
+      return type_traits<std::string>::read(istr, value);
     }
   };
 
@@ -29,8 +28,7 @@ namespace flexbin
   struct field_reader<T, std::enable_if_t<std::is_fundamental<T>::value> > {
 
     static bool read(istream& istr, uint8_t field_id,  T& value) {
-      //return type_traits<T>::write(ostr, value);
-      return false;
+      return type_traits<T>::read(istr, value);
     }
   };
 
