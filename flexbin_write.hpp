@@ -129,7 +129,7 @@ namespace flexbin
     // object header
     bool write_header(ostream& ostr, const T& obj)
     {
-      uint32_t object_size = 0; // TODO
+      uint32_t object_size = 0; 
       object_size_pos = ostr.tellp();
 
       if (object_size_pos < 0)
@@ -139,12 +139,11 @@ namespace flexbin
 
       uint16_t class_id = T::flexbin_class_id;
       ostr.write(reinterpret_cast<const char*>(&class_id), 2);
-      return object_size_pos;
+      return true;
     }
 
     bool write_bottom(ostream& ostr, const T& obj)
     {
-      const uint8_t end_marker = 255;
       ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
 
       auto object_end_pos = ostr.tellp();

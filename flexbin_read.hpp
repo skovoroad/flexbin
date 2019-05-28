@@ -154,12 +154,27 @@ namespace flexbin
     }
 #endif
 
-    bool read_header( istream& ostr,  T& obj ) {
-      return false;
+    bool read_header( istream& istr,  T& obj ) {
+      uint32_t size = 0;
+      if(!type_traits<uint32_t>::read(istr, size))
+        return false;
+
+      uint16_t id = 0;
+      if (!type_traits<uint16_t>::read(istr, id))
+        return false;
+
+      if (id != T::flexbin_class_id)
+        return false;
+      return true;
+
     }  
 
-    bool read_bottom(istream& ostr,  T& obj) {
-      return false;
+    bool read_bottom(istream& istr,  T& obj) {
+      uint8_t em = 0;
+      if (!type_traits<uint8_t>::read(istr, em))
+        return false;
+
+      return end_marker == em;
     }
   };
 

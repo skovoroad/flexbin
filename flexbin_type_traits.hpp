@@ -60,6 +60,30 @@ namespace flexbin
   };
 
   template<>
+  struct type_traits<uint16_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 4 };
+
+    inline static size_t write(std::basic_ostream<char>& ostr, const uint16_t& val) {
+      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint16_t));
+      return sizeof(uint16_t);
+    }
+
+    inline static bool read(std::basic_istream<char>& istr, uint16_t& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(uint16_t));
+      return istr.good();
+    }
+
+    inline static auto candidates(const uint16_t& value) {
+      return std::make_tuple(
+        static_cast<uint8_t>(value)
+      );
+    }
+  };
+
+
+  template<>
   struct type_traits<uint8_t>
   {
     enum { default_value_ = 0 };
@@ -96,4 +120,6 @@ namespace flexbin
     }
 
   };
+
+  constexpr uint8_t end_marker = 255;
 } // namespace flexbin
