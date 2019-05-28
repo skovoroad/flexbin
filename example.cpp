@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <sstream>
 #include "flexbin.hpp"
 
@@ -23,23 +24,29 @@ namespace test_data
 
     FLEXBIN_CLASS_ID(777);
 
-    FLEXBIN_SERIALIZE_FIXED(val32_)    
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
-    FLEXBIN_SERIALIZE_OPTIONAL(val8_)    
-    FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)    
+    FLEXBIN_SERIALIZE_FIXED(val32_)
+//    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
+    FLEXBIN_SERIALIZE_REQUIRED(val64_)
+    FLEXBIN_SERIALIZE_OPTIONAL(val8_)
+    FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
+
+    void dump() {
+      std::cout << (int)val64_ << " " << (int)val32_ << " " << (int)val32_2_ << " " << (int)val8_ << " " << ss_.strval_;
+    }
   };
 
   inline bool operator==(const test_struct& lhs, const test_struct& rhs)
   {
-    std::cout << "comparing "  << std::endl
+/*    std::cout << "comparing "  << std::endl
       << lhs.val64_ << " " << lhs.val8_ << " " << lhs.val32_ << " " << lhs.ss_.strval_ << std::endl
       << rhs.val64_ << " " << rhs.val8_ << " " << rhs.val32_ << " " << rhs.ss_.strval_ << std::endl
       ;
-
+      */
 
     return lhs.val64_ == rhs.val64_ &&
-           lhs.val32_ == rhs.val32_ &&
-           lhs.val8_ == rhs.val8_ 
+      lhs.val32_ == rhs.val32_ &&
+      lhs.val32_2_ == rhs.val32_2_ &&
+      lhs.val8_ == rhs.val8_
     ;
   }
 }
@@ -47,8 +54,16 @@ namespace test_data
 
 int main(int argc, char** argv)
 {
-  test_data::test_struct a { 10^5, 1, 7, 77, { "first"}};
-  test_data::test_struct b { 0, 1, 7, 88,{ "second"}};
+  test_data::test_struct a { 1000, 1, 7, 77, { "first"}};
+  test_data::test_struct b { 0, 2, 8, 88,{ "second"}};
+
+  std::cout << "A: ";
+  a.dump();
+  std::cout << std::endl;
+
+  std::cout << "B: ";
+  b.dump();
+  std::cout << std::endl;
 
   std::stringbuf fbuf;
   //fbuf.open("/tmp/inout",std::ios_base::in | std::ios_base::out);
@@ -56,8 +71,36 @@ int main(int argc, char** argv)
   flexbin::ostream fbout(&fbuf);
 
   fbout << b;
-  fbout.flush();
+  if (!fbout) {
+    std::cerr << "ostr error" << std::endl;
+//    return 0;
+  }
+
+  std::cout << "Buffer: ";
+  std::ios_base::fmtflags f(std::cout.flags());
+  for (size_t i = 0; i < fbuf.str().size(); ++i)
+    std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) fbuf.str()[i] << " ";
+  std::cout << std::endl;
+  std::cout.flags(f);
+
+
+  //fbout.flush();
   fbin >> a;
+  if (!fbin) {
+    std::cerr << "istr error" << std::endl;
+//    return 0;
+  }
+
+
+  std::cout << "A: ";
+  a.dump();
+  std::cout << std::endl;
+
+  std::cout << "B: ";
+  b.dump();
+  std::cout << std::endl;
+
+  std::cout << (a == b) << std::endl;
 
   // todo:
   // + 1. compact value representation

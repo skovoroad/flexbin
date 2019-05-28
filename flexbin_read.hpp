@@ -5,32 +5,61 @@
 
 namespace flexbin
 {
+  template<typename T, typename candidateT>
+  inline void unpack_if_type_matches(std::basic_istream<char>& istr,
+    size_t & nbytes,
+    uint8_t type_code,
+    T& value,
+    const candidateT& phony
+  ) {
+    if (nbytes > 0) // already unpacked 
+      return;
+    if (type_traits<T>::code_ != type_code)
+      return;
+
+    candidateT candidate_value;
+    type_traits<candidateT>::read(istr, candidate_value);
+    nbytes = sizeof(candidateT);
+    value = candidate_value;
+  }
+
+  template<typename T>
+  size_t unpack_value(std::basic_istream<char>& istr, uint8_t type, T& value) {
+
+    auto pack_versions = type_traits<T>::candidates(value);
+    size_t unpacked_nbytes = 0;
+
+    auto pack_candidates = [&](auto&&... args) {
+      ((unpack_if_type_matches(istr, unpacked_nbytes, type, value,  args)), ...);
+    };
+
+    std::apply(pack_candidates, pack_versions);
+    return unpacked_nbytes;
+  }
+
   ///////////////////
   // Read methods selector for different field types: fundamental, std::string or struct/class
   template <typename T, class Enabler = void>
   struct field_reader {
 
-    static bool read(istream& istr, uint8_t field_id,  T& value) {
+    static bool read(istream& istr, T& value) {
       istr >> value;
-      //???
       return true;
     }
   };
 
   template <>
   struct field_reader<std::string, void> {
-    static bool read(istream& istr, uint8_t field_id,  std::string& value) {
-      //return type_traits<std::string>::write(ostr, value);
-      return false;
+    static bool read(istream& istr, std::string& value) {
+      return type_traits<std::string>::read(istr, value);
     }
   };
 
   template <typename T>
   struct field_reader<T, std::enable_if_t<std::is_fundamental<T>::value> > {
 
-    static bool read(istream& istr, uint8_t field_id,  T& value) {
-      //return type_traits<T>::write(ostr, value);
-      return false;
+    static bool read(istream& istr, T& value) {
+      return type_traits<T>::read(istr, value);
     }
   };
 
@@ -39,8 +68,46 @@ namespace flexbin
   //////////////////////////
   // Write strategies: fixes, optional, required, simplified
   template<typename T>
+  inline bool read_fixed(istream& istr, T& value) {
+    return field_reader<T>::read(istr, value);
+  };
+
+
+  template<typename T>
   inline bool read_required(istream& istr, uint8_t field_id, T& value) {
-    return field_reader<T>::read(istr, field_id, value);
+    uint8_t type(0), id(0);
+    if (!type_traits<uint8_t>::read(istr, type) || !type_traits<uint8_t>::read(istr, id))
+      return false;
+    if (id != field_id)
+      return false;
+    //return field_reader<T>::read(istr, value);  // NO! read real type, not T
+    return unpack_value(istr, type, value);
+  };
+
+  template<typename T>
+  inline bool read_optional(istream& istr, uint8_t field_id, T& value) {
+    uint8_t type(0), id(0);
+    if (!type_traits<uint8_t>::read(istr, type) || !type_traits<uint8_t>::read(istr, id))
+      return false;
+    if (id != field_id) {
+      value = type_traits<T>::default_value_;
+      return true;
+    }
+//    return field_reader<T>::read(istr, value); // NO! read real type, not T
+    return unpack_value(istr, type, value);
+  };
+
+  template<typename T>
+  inline bool read_simplified(istream& istr, uint8_t field_id, T& value) {
+    uint8_t type(0), id(0);
+    if (!type_traits<uint8_t>::read(istr, type) || !type_traits<uint8_t>::read(istr, id))
+      return false;
+    if (id != field_id) {
+      value = type_traits<T>::default_value_;
+      return true;
+    }
+  //  return field_reader<T>::read(istr, value); // NO! read real type, not T
+    return unpack_value(istr, type, value);
   };
 
   ///////////////////////////
@@ -59,6 +126,17 @@ namespace flexbin
 
 #ifdef _MSC_VER 
     // Read fixed fields if exists
+    bool read_fixed_fields(istream& istr, T& obj) {
+      __if_exists(T::flexbin_serialize_fixed)
+      {
+        auto field_deserializer_fixed = [this, &istr](auto&&... args) {
+          ((success_ = success_ && read_fixed(istr, args)), ...);
+        };
+        std::apply(field_deserializer_fixed, obj.flexbin_deserialize_fixed());
+      }
+      return success_;
+    }
+    // Read required fields if exists
     bool read_required_fields(istream& istr, T& obj) {
       __if_exists(T::flexbin_serialize_required)
       {
@@ -66,6 +144,28 @@ namespace flexbin
           ((success_ = success_ && read_required(istr, ++field_id, args)), ...);
         };
         std::apply(field_deserializer_required, obj.flexbin_deserialize_required());
+      }
+      return success_;
+    }
+    // Read optional fields if exists
+    bool read_optional_fields(istream& istr, T& obj) {
+      __if_exists(T::flexbin_serialize_optional)
+      {
+        auto field_deserializer_optional = [this, &istr](auto&&... args) {
+          ((success_ = success_ && read_optional(istr, ++field_id, args)), ...);
+        };
+        std::apply(field_deserializer_optional, obj.flexbin_deserialize_optional());
+        }
+      return success_;
+      }
+    // Read simplified fields if exists
+    bool read_simplified_fields(istream& istr, T& obj) {
+      __if_exists(T::flexbin_serialize_simplified)
+      {
+        auto field_deserializer_simplified = [this, &istr](auto&&... args) {
+          ((success_ = success_ && read_simplified(istr, ++field_id, args)), ...);
+        };
+        std::apply(field_deserializer_simplified, obj.flexbin_deserialize_simplified());
       }
       return success_;
     }
@@ -89,12 +189,27 @@ namespace flexbin
     }
 #endif
 
-    bool read_header( istream& ostr,  T& obj ) {
-      return false;
+    bool read_header( istream& istr,  T& obj ) {
+      uint32_t size = 0;
+      if(!type_traits<uint32_t>::read(istr, size))
+        return false;
+
+      uint16_t id = 0;
+      if (!type_traits<uint16_t>::read(istr, id))
+        return false;
+
+      if (id != T::flexbin_class_id)
+        return false;
+      return true;
+
     }  
 
-    bool read_bottom(istream& ostr,  T& obj) {
-      return false;
+    bool read_bottom(istream& istr,  T& obj) {
+      uint8_t em = 0;
+      if (!type_traits<uint8_t>::read(istr, em))
+        return false;
+
+      return end_marker == em;
     }
   };
 

@@ -52,8 +52,11 @@ namespace flexbin
     flexbin_reader<T> reader;
 
     if (! (reader.read_header(*this, obj) &&
-           reader.read_required_fields(*this, obj) &&
-           reader.read_bottom(*this, obj)) ) 
+      reader.read_fixed_fields(*this, obj) &&
+      reader.read_required_fields(*this, obj) &&
+      reader.read_optional_fields(*this, obj) &&
+      reader.read_simplified_fields(*this, obj) &&
+      reader.read_bottom(*this, obj)) )
     {
       setstate(rdstate() & std::ios_base::badbit);
     }
