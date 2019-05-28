@@ -59,6 +59,8 @@ int main(int argc, char** argv)
   fbout.flush();
   fbin >> a;
 
+  std::cout << (a == b) << std::endl;
+
   // todo:
   // + 1. compact value representation
   // + 2. flexbin fields encoding

@@ -87,7 +87,7 @@ namespace flexbin
 //////////////////////////
 // Write strategies: fixes, optional, required, simplified
   template<typename T>    
-  inline size_t write_fixed( ostream& ostr, uint8_t field_id,  const T& value) {
+  inline size_t write_fixed( ostream& ostr, const T& value) {
     return field_writer<T>::write(ostr, value);
   };
 
@@ -187,7 +187,7 @@ namespace flexbin
       __if_exists(T::flexbin_serialize_fixed)
       {
         auto field_serializer_fixed = [this, &ostr](auto&&... args) {
-          ((success_ = success_ && write_fixed(ostr, ++field_id, args)), ...);
+          ((success_ = success_ && write_fixed(ostr, args)), ...);
         };
         std::apply(field_serializer_fixed, obj.flexbin_serialize_fixed());
       }
