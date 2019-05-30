@@ -14,7 +14,7 @@ namespace flexbin
   ) {
     if (nbytes > 0) // already unpacked 
       return;
-    if (type_traits<T>::code_ != type_code)
+    if (type_traits<candidateT>::code_ != type_code)
       return;
 
     candidateT candidate_value;
