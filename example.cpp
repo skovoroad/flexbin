@@ -66,14 +66,12 @@ int main(int argc, char** argv)
   std::cout << std::endl;
 
   std::stringbuf fbuf;
-  //fbuf.open("/tmp/inout",std::ios_base::in | std::ios_base::out);
   flexbin::istream fbin(&fbuf);
   flexbin::ostream fbout(&fbuf);
 
   fbout << b;
   if (!fbout) {
     std::cerr << "ostr error" << std::endl;
-//    return 0;
   }
 
   std::cout << "Buffer: ";
@@ -83,6 +81,17 @@ int main(int argc, char** argv)
   std::cout << std::endl;
   std::cout.flags(f);
 
+  uint16_t classid(0);
+  std::string str = fbuf.str();
+  if (!flexbin::class_id(str.data(), str.size(), classid))
+  {
+    std::cerr << "error getting classid" << std::endl;
+  }
+  else
+  {
+    if(classid != (uint16_t)test_data::test_struct::flexbin_class_id)
+      std::cerr << "bad class id detected: " << classid << std::endl;
+  }
 
   //fbout.flush();
   fbin >> a;

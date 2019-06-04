@@ -8,6 +8,7 @@
 #include "flexbin_write.hpp"
 #include "flexbin_read.hpp"
 #include "flexbin_streams.hpp"
+#include "flexbin_buffer.hpp"
 
 #define FLEXBIN_CLASS_ID(id)  enum { flexbin_class_id = id };
 
@@ -62,6 +63,21 @@ namespace flexbin
     }
 
     return *this;
+  }
+
+  inline bool class_id(const void *data, size_t nbytes,  uint16_t & retval)
+  {
+    memmap_buffer buffer(reinterpret_cast<const char *>(data), nbytes);
+    istream istr(&buffer);
+
+    uint32_t size = 0;
+    if (!type_traits<uint32_t>::read(istr, size))
+      return false;
+
+    if (!type_traits<uint16_t>::read(istr, retval))
+      return false;
+
+    return true;
   }
 
 } // namespace flexbin 
