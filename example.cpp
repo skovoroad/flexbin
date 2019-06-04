@@ -109,8 +109,8 @@ int main(int argc, char** argv)
   // 4. flexstring
   // 5. all types support
   // 6. tests
-  // 7. write complex object string?
-  // 8. reading...
+  // ? 7. write complex object string?
+  // + 8. reading...
   // 9. memalloc_buffer for streams, preallocate proper size
   // 10. Maybe optimize if only fixed fields?
   // 11. error handling

@@ -121,7 +121,6 @@ namespace flexbin
     inline static bool read(std::basic_istream<char>& istr, std::string& val) {
       return istr.good();
     }
-
   };
 
   constexpr uint8_t end_marker = 255;
