@@ -80,5 +80,14 @@ namespace flexbin
     return true;
   }
 
+  template <typename T>
+  inline std::size_t class_object_size(const T& obj) {
+    memmap_buffer buffer(reinterpret_cast<const char *>(nullptr), static_cast<size_t>(0) );
+    ostream ostr(&buffer, true);
+    ostr << obj;
+    return ostr.written_count(); 
+  }
+
+
 } // namespace flexbin 
 

@@ -22,7 +22,7 @@ namespace flexbin
     if (value == candidate)
     {
       uint8_t code = type_traits<candidateT>::code_;
-      nbytes = sizeof(candidateT);
+      nbytes = sizeof(candidateT) + 2;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
       ostr.write(reinterpret_cast<const char*>(&candidate), nbytes);
@@ -108,7 +108,7 @@ namespace flexbin
     uint8_t code = type_traits<T>::code_;
     ostr.write(reinterpret_cast<const char*>(&code), 1);
     ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-    return type_traits<T>::write(ostr, value);
+    return type_traits<T>::write(ostr, value) + 2;
   };
 
 ///////////////////////////
@@ -147,13 +147,14 @@ namespace flexbin
       ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
 
       auto object_end_pos = ostr.tellp();
-      assert(object_end_pos > object_size_pos);
+      if (object_end_pos > object_size_pos) { // real writing, not just counting object size 
 
-      auto object_size = static_cast<uint32_t>(object_end_pos - object_size_pos);
+        auto object_size = static_cast<uint32_t>(object_end_pos - object_size_pos);
 
-      ostr.seekp(object_size_pos);
-      ostr.write(reinterpret_cast<const char*>(&object_size), 4);
-      ostr.seekp(object_end_pos);
+        ostr.seekp(object_size_pos);
+        ostr.write(reinterpret_cast<const char*>(&object_size), 4);
+        ostr.seekp(object_end_pos);
+      }
       return true;
     }
 

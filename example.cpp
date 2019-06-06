@@ -69,6 +69,9 @@ int main(int argc, char** argv)
   flexbin::istream fbin(&fbuf);
   flexbin::ostream fbout(&fbuf);
 
+  auto b_size = flexbin::class_object_size(b);
+  std::cerr << "b size" << b_size << std::endl;
+
   fbout << b;
   if (!fbout) {
     std::cerr << "ostr error" << std::endl;
@@ -81,6 +84,8 @@ int main(int argc, char** argv)
   std::cout << std::endl;
   std::cout.flags(f);
 
+  
+
   uint16_t classid(0);
   std::string str = fbuf.str();
   if (!flexbin::class_id(str.data(), str.size(), classid))
@@ -92,6 +97,9 @@ int main(int argc, char** argv)
     if(classid != (uint16_t)test_data::test_struct::flexbin_class_id)
       std::cerr << "bad class id detected: " << classid << std::endl;
   }
+
+  if(str.size() != b_size)
+    std::cerr << "Bad b size! real size: " << str.size() << std::endl;
 
   //fbout.flush();
   fbin >> a;
@@ -120,9 +128,10 @@ int main(int argc, char** argv)
   // 6. tests
   // ? 7. write complex object string?
   // + 8. reading...
-  // 9. memalloc_buffer for streams, preallocate proper size
-  // 10. Maybe optimize if only fixed fields?
-  // 11. error handling
+  // + 10. memalloc_buffer for streams, 
+  // 11 preallocate proper size
+  // 12. Maybe optimize if only fixed fields?
+  // 13. error handling
 
   /*
         to pack value we need to:
