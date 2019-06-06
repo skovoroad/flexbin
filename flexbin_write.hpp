@@ -25,7 +25,7 @@ namespace flexbin
       nbytes = sizeof(candidateT) + 2;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-      ostr.write(reinterpret_cast<const char*>(&candidate), nbytes);
+      ostr.write(reinterpret_cast<const char*>(&candidate), sizeof(candidateT));
     }
   }
 

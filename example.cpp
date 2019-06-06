@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   std::cout << "Buffer: ";
   std::ios_base::fmtflags f(std::cout.flags());
   for (size_t i = 0; i < fbuf.str().size(); ++i)
-    std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) fbuf.str()[i] << " ";
+    std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char) fbuf.str()[i] << " ";
   std::cout << std::endl;
   std::cout.flags(f);
 
