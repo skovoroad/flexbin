@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include "flexbin_streams.hpp"
 
 namespace flexbin
 {
@@ -25,7 +26,7 @@ namespace flexbin
       );
     }
 
-    inline static size_t write( std::basic_ostream<char>& ostr, const uint64_t& val) { 
+    inline static size_t write( ostream& ostr, const uint64_t& val) { 
       ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint64_t));
       return sizeof(uint64_t); 
     }
@@ -42,7 +43,7 @@ namespace flexbin
     enum { default_value_ = 0 };
     enum { code_ = 8 };
 
-    inline static size_t write( std::basic_ostream<char>& ostr, const uint32_t& val ) { 
+    inline static size_t write(ostream& ostr, const uint32_t& val ) {
       ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint32_t));
       return sizeof(uint32_t); 
      }
@@ -67,7 +68,7 @@ namespace flexbin
     enum { default_value_ = 0 };
     enum { code_ = 4 };
 
-    inline static size_t write(std::basic_ostream<char>& ostr, const uint16_t& val) {
+    inline static size_t write(ostream& ostr, const uint16_t& val) {
       ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint16_t));
       return sizeof(uint16_t);
     }
@@ -92,7 +93,7 @@ namespace flexbin
     enum { default_value_ = 0 };
     enum { code_ = 2 };
     
-    inline static size_t write( std::basic_ostream<char>& ostr, const uint8_t& val ) { 
+    inline static size_t write(ostream& ostr, const uint8_t& val ) {
       ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint8_t));
       return sizeof(uint8_t); 
      }
@@ -114,7 +115,7 @@ namespace flexbin
   {
     enum { code_ = 21 };
 
-    inline static size_t write( std::basic_ostream<char>& ostr, const std::string& ) { 
+    inline static size_t write(ostream& ostr, const std::string& ) {
       return 0; 
     }
 

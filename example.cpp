@@ -129,7 +129,7 @@ int main(int argc, char** argv)
   // ? 7. write complex object string?
   // + 8. reading...
   // + 10. memalloc_buffer for streams, 
-  // 11 preallocate proper size
+  // + 11 preallocate proper size
   // 12. Maybe optimize if only fixed fields?
   // 13. error handling
 

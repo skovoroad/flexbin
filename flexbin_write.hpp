@@ -11,7 +11,7 @@ namespace flexbin
 // pack_value - iterate through "smaller" types to pack "bigger"
 
   template<typename T, typename candidateT>
-  void pack_if_equal(std::basic_ostream<char>& ostr,
+  void pack_if_equal(ostream& ostr,
     const T& value,
     size_t & nbytes,
     uint8_t field_id,
@@ -30,7 +30,7 @@ namespace flexbin
   }
 
   template<typename T>
-  size_t pack_value(std::basic_ostream<char>& ostr, const T& value, uint8_t field_id) {
+  size_t pack_value(ostream& ostr, const T& value, uint8_t field_id) {
 
     auto pack_versions = type_traits<T>::candidates(value);
     size_t packed_nbytes = 0;
