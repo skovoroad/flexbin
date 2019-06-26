@@ -54,8 +54,8 @@ namespace test_data
 
 int main(int argc, char** argv)
 {
-  test_data::test_struct a { 1000, 1, 7, 77, { "first"}};
-  test_data::test_struct b { 0, 2, 8, 88,{ "second"}};
+  test_data::test_struct a{ 1000, 1, 7, 77, { "first"} };
+  test_data::test_struct b{ 0, 2, 8, 88,{ "second"} };
 
   std::cout << "A: ";
   a.dump();
@@ -65,7 +65,11 @@ int main(int argc, char** argv)
   b.dump();
   std::cout << std::endl;
 
-  std::stringbuf fbuf;
+  //std::stringbuf fbuf;
+  char mem[128];
+  std::memset(mem, 0, 128);
+  flexbin::memmap_buffer fbuf(mem, mem + 128);
+
   flexbin::istream fbin(&fbuf);
   flexbin::ostream fbout(&fbuf);
 
@@ -79,33 +83,35 @@ int main(int argc, char** argv)
 
   std::cout << "Buffer: ";
   std::ios_base::fmtflags f(std::cout.flags());
-  for (size_t i = 0; i < fbuf.str().size(); ++i)
-    std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char) fbuf.str()[i] << " ";
+  //for (size_t i = 0; i < fbuf.str().size(); ++i)
+    //std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char) fbuf.str()[i] << " ";
+  for (size_t i = 0; i < 128; ++i)
+    std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char)mem[i] << " ";
   std::cout << std::endl;
   std::cout.flags(f);
 
-  
 
   uint16_t classid(0);
-  std::string str = fbuf.str();
-  if (!flexbin::class_id(str.data(), str.size(), classid))
+  //std::string str = fbuf.str();
+  //if (!flexbin::class_id(str.data(), str.size(), classid))
+  if (!flexbin::class_id(mem, 128, classid))
   {
     std::cerr << "error getting classid" << std::endl;
   }
   else
   {
-    if(classid != (uint16_t)test_data::test_struct::flexbin_class_id)
+    if (classid != (uint16_t)test_data::test_struct::flexbin_class_id)
       std::cerr << "bad class id detected: " << classid << std::endl;
   }
 
-  if(str.size() != b_size)
-    std::cerr << "Bad b size! real size: " << str.size() << std::endl;
+  //  if(str.size() != b_size)
+  //    std::cerr << "Bad b size! real size: " << str.size() << std::endl;
 
-  //fbout.flush();
+    //fbout.flush();
   fbin >> a;
   if (!fbin) {
     std::cerr << "istr error" << std::endl;
-//    return 0;
+    //    return 0;
   }
 
 
@@ -118,6 +124,7 @@ int main(int argc, char** argv)
   std::cout << std::endl;
 
   std::cout << (a == b) << std::endl;
+}
 
   // todo:
   // + 1. compact value representation
@@ -126,7 +133,7 @@ int main(int argc, char** argv)
   // 4. flexstring
   // 5. all types support
   // 6. tests
-  // ? 7. write complex object string?
+  // + 7. write complex object ?
   // + 8. reading...
   // + 10. memalloc_buffer for streams, 
   // + 11 preallocate proper size
@@ -134,7 +141,7 @@ int main(int argc, char** argv)
   // 13. error handling
 
   /*
-        to pack value we need to:
+    to pack value we need to:
   1. get tuple of all descent types (from traits)
   2. iterate from smallest type to largest
    if static_cast<small>() returns equal value - write it
@@ -154,4 +161,4 @@ int main(int argc, char** argv)
 
 // VC++ this doesn't work
 //  flexbin::creatable_non_zero< sizeof(&test_data::test_struct::flexbin_serialize_optional) > ttt(0);
-}
+
