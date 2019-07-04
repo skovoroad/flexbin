@@ -6,7 +6,7 @@
 namespace flexbin
 {
   template<typename T, typename candidateT>
-  inline void unpack_if_type_matches(std::basic_istream<char>& istr,
+  inline void unpack_if_type_matches(istream& istr,
     size_t & nbytes,
     uint8_t type_code,
     T& value,
@@ -24,7 +24,7 @@ namespace flexbin
   }
 
   template<typename T>
-  size_t unpack_value(std::basic_istream<char>& istr, uint8_t type, T& value) {
+  size_t unpack_value(istream& istr, uint8_t type, T& value) {
 
     auto pack_versions = type_traits<T>::candidates(value);
     size_t unpacked_nbytes = 0;
@@ -46,12 +46,24 @@ namespace flexbin
       istr >> value;
       return true;
     }
+
+    static bool unpack_value(istream& istr, uint8_t type, T& value) {
+      istr >> value;
+      bool retval = istr.good();
+      return istr.good(); 
+    }
+
   };
 
   template <>
   struct field_reader<std::string, void> {
     static bool read(istream& istr, std::string& value) {
       return type_traits<std::string>::read(istr, value);
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, std::string& value) {
+      flexbin::unpack_value(istr, type, value);
+      return istr.good(); 
     }
   };
 
@@ -61,6 +73,12 @@ namespace flexbin
     static bool read(istream& istr, T& value) {
       return type_traits<T>::read(istr, value);
     }
+
+    static bool unpack_value(istream& istr, uint8_t type, T& value) {
+      flexbin::unpack_value(istr, type, value);
+      return istr.good(); 
+    }
+
   };
 
 
@@ -80,8 +98,7 @@ namespace flexbin
       return false;
     if (id != field_id)
       return false;
-    //return field_reader<T>::read(istr, value);  // NO! read real type, not T
-    return unpack_value(istr, type, value);
+    return field_reader<T>::unpack_value(istr, type, value);
   };
 
   template<typename T>
@@ -94,7 +111,7 @@ namespace flexbin
       return true;
     }
 //    return field_reader<T>::read(istr, value); // NO! read real type, not T
-    return unpack_value(istr, type, value);
+    return field_reader<T>::unpack_value(istr, type, value);
   };
 
   template<typename T>
@@ -107,7 +124,7 @@ namespace flexbin
       return true;
     }
   //  return field_reader<T>::read(istr, value); // NO! read real type, not T
-    return unpack_value(istr, type, value);
+    return field_reader<T>::unpack_value(istr, type, value);
   };
 
   ///////////////////////////

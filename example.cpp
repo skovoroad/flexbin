@@ -26,14 +26,17 @@ namespace test_data
     FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
-//    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, strval_)
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ , strval_)
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)
     FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
 
+    //FLEXBIN_SERIALIZE_REQUIRED(ss_, val64_ )
+
     void dump() {
-      std::cout << (int)val64_ << " " << (int)val32_ << " " << (int)val32_2_ << " " << (int)val8_ << " " << strval_;
-      
+      std::cout << (int)val64_ << " " << (int)val32_ << " " << (int)val32_2_ << " " << (int)val8_ << " " << strval_
+        << " " << ss_.strval_
+        ;
+//      std::cout << (int)val64_ << " " << ss_.strval_;
     }
   };
 
@@ -143,6 +146,7 @@ int main(int argc, char** argv)
   // + 11 preallocate proper size
   // 12. Maybe optimize if only fixed fields?
   // 13. error handling
+// 14. Default value for string, T
 
   /*
     to pack value we need to:

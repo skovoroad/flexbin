@@ -31,7 +31,7 @@ namespace flexbin
       return sizeof(uint64_t); 
     }
 
-    inline static bool read(std::basic_istream<char>& istr, uint64_t& val) {
+    inline static bool read(istream& istr, uint64_t& val) {
       istr.read(reinterpret_cast<char*>(&val), sizeof(uint64_t));
       return istr.good();
     }
@@ -48,7 +48,7 @@ namespace flexbin
       return sizeof(uint32_t); 
      }
 
-    inline static bool read(std::basic_istream<char>& istr, uint32_t& val) {
+    inline static bool read(istream& istr, uint32_t& val) {
       istr.read(reinterpret_cast<char*>(&val), sizeof(uint32_t));
       return istr.good();
     }
@@ -73,7 +73,7 @@ namespace flexbin
       return sizeof(uint16_t);
     }
 
-    inline static bool read(std::basic_istream<char>& istr, uint16_t& val) {
+    inline static bool read(istream& istr, uint16_t& val) {
       istr.read(reinterpret_cast<char*>(&val), sizeof(uint16_t));
       return istr.good();
     }
@@ -98,7 +98,7 @@ namespace flexbin
       return sizeof(uint8_t); 
      }
 
-    inline static bool read(std::basic_istream<char>& istr, uint8_t& val) {
+    inline static bool read(istream& istr, uint8_t& val) {
       istr.read(reinterpret_cast<char*>(&val), sizeof(uint8_t));
       return istr.good();
     }
@@ -114,6 +114,7 @@ namespace flexbin
   struct type_traits<std::string>
   {
     enum { code_ = 21 };
+    enum { default_value_ = 0 };
 
     inline static size_t write(ostream& ostr, const std::string& str) {
       size_t len = str.length();
@@ -123,7 +124,7 @@ namespace flexbin
       return len + sizeof(size_t); 
     }
 
-    inline static bool read(std::basic_istream<char>& istr, std::string& val) {
+    inline static bool read(istream& istr, std::string& val) {
       size_t len = 0;
       if (!type_traits<size_t >::read(istr, len)) {
         // ...

@@ -1,5 +1,6 @@
 #pragma once
 #include <assert.h>
+#include <stack>
 #include "flexbin_streams.hpp"
 #include "flexbin_aux.hpp"
 
@@ -50,12 +51,14 @@ namespace flexbin
 
     static size_t write( ostream& ostr, const T& value) { 
       ostr << value;
-      return 0; 
+      return sizeof(T);  // FUUUUU
     }
 
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) { 
-       // no sense to pack structure/calss
-       return write(ostr, value);
+      uint8_t code = type_traits<T>::code_;
+      ostr.write(reinterpret_cast<const char*>(&code), 1);
+      ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      return write(ostr, value);
     }
   };
 
@@ -121,7 +124,7 @@ namespace flexbin
   struct flexbin_writer
   {
     uint8_t field_id = 0;
-    std::streampos object_size_pos;
+    std::stack<std::streampos> object_size_pos;
     bool success_ = true;
 
     constexpr static bool required_fields_exists = (has_required_fields<T>::yes != 0);
@@ -133,10 +136,11 @@ namespace flexbin
     bool write_header(ostream& ostr, const T& obj)
     {
       uint32_t object_size = 0; 
-      object_size_pos = ostr.tellp();
+      auto size_pos = ostr.tellp();
 
-      if (object_size_pos < 0)
+      if (size_pos < 0)
         throw(std::ios_base::failure("inapproriate type of buffer doesn't support rewind "));
+      object_size_pos.push(size_pos);
 
       ostr.write(reinterpret_cast<const char*>(&object_size), 4);
 
@@ -150,13 +154,16 @@ namespace flexbin
       ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
 
       auto object_end_pos = ostr.tellp();
-      if (object_end_pos > object_size_pos) { // real writing, not just counting object size 
+      assert(!object_size_pos.empty());
+      auto size_pos = object_size_pos.top();
+      if (object_end_pos > size_pos) { // real writing, not just counting object size 
 
-        auto object_size = static_cast<uint32_t>(object_end_pos - object_size_pos);
+        auto object_size = static_cast<uint32_t>(object_end_pos - size_pos);
 
-        ostr.seekp(object_size_pos);
+        ostr.seekp(size_pos);
         ostr.write(reinterpret_cast<const char*>(&object_size), 4);
         ostr.seekp(object_end_pos);
+        object_size_pos.pop();
       }
       return true;
     }
@@ -167,7 +174,7 @@ namespace flexbin
       __if_exists(T::flexbin_serialize_required)
       {
         auto field_serializer_required = [this, &ostr](auto&&... args) {
-          ((success_ = success_ && write_required(ostr, ++field_id, args)), ...);
+          ((success_ = success_ && ( 0 != write_required(ostr, ++field_id, args))), ...);
         };
         std::apply(field_serializer_required, obj.flexbin_serialize_required());
       }
@@ -178,7 +185,7 @@ namespace flexbin
       __if_exists(T::flexbin_serialize_optional)
       {
         auto field_serializer_optional = [this, &ostr](auto&&... args) {
-          ((success_  = success_ && write_optional(ostr, ++field_id, args)), ...);
+          ((success_  = success_ && (0 != write_optional(ostr, ++field_id, args))), ...);
         };
         std::apply(field_serializer_optional, obj.flexbin_serialize_optional());
       }
@@ -190,7 +197,7 @@ namespace flexbin
       __if_exists(T::flexbin_serialize_fixed)
       {
         auto field_serializer_fixed = [this, &ostr](auto&&... args) {
-          ((success_ = success_ && write_fixed(ostr, args)), ...);
+          ((success_ = success_ && (0 != write_fixed(ostr, args))), ...);
         };
         std::apply(field_serializer_fixed, obj.flexbin_serialize_fixed());
       }
@@ -201,7 +208,7 @@ namespace flexbin
       __if_exists(T::flexbin_serialize_simplified)
       {
         auto field_serializer_simplified = [this, &ostr](auto&&... args) {
-          ((success_  = success_ && write_simplified(ostr, ++field_id, args)), ...);
+          ((success_  = success_ && (0 != write_simplified(ostr, ++field_id, args))), ...);
         };
         std::apply(field_serializer_simplified, obj.flexbin_serialize_simplified());
       }
@@ -213,7 +220,7 @@ namespace flexbin
     typename std::enable_if< required_fields_exists , C>::type
     write_required_fields(ostream& ostr, const T& obj) {
       auto field_serializer_required = [this, &ostr](auto&&... args) { 
-          ( (success_  = success_ && write_required(ostr, ++field_id,  args) ) , ... );
+          ( (success_  = success_ && (0 != write_required(ostr, ++field_id,  args))) , ... );
         };
       std::apply( field_serializer_required, obj.flexbin_serialize_required());
       return success_;
@@ -231,7 +238,7 @@ namespace flexbin
     typename std::enable_if< optional_fields_exists , C>::type
     write_optional_fields(ostream& ostr, const T& obj) {
       auto field_serializer_optional = [this, &ostr](auto&&... args) { 
-          ( (success_  = success_ && write_optional(ostr, ++field_id,  args) ) , ... );
+          ( (success_  = success_ && (0 != write_optional(ostr, ++field_id,  args))) , ... );
         };
       std::apply( field_serializer_optional, obj.flexbin_serialize_optional());
       return success_;
@@ -249,7 +256,7 @@ namespace flexbin
     typename std::enable_if< fixed_fields_exists , C>::type
     write_fixed_fields(ostream& ostr, const T& obj) {
       auto field_serializer_fixed = [this, &ostr](auto&&... args) { 
-          ( (success_ = success_ && write_fixed(ostr, args) ) , ... );
+          ( (success_ = success_ && (0!=write_fixed(ostr, args))) , ... );
         };
       std::apply( field_serializer_fixed, obj.flexbin_serialize_fixed());
       return success_;
@@ -267,7 +274,7 @@ namespace flexbin
     typename std::enable_if< simplified_fields_exists , C>::type
     write_simplified_fields(ostream& ostr, const T& obj) {
       auto field_serializer_simplified = [this, &ostr](auto&&... args) { 
-          ( (success_  = success_ && write_simplified(ostr, ++field_id,  args) ) , ... );
+          ( (success_  = success_ && (0 != write_simplified(ostr, ++field_id,  args))) , ... );
         };
       std::apply( field_serializer_simplified, obj.flexbin_serialize_simplified());
       return success_;
