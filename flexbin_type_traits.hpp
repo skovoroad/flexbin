@@ -115,13 +115,40 @@ namespace flexbin
   {
     enum { code_ = 21 };
 
+    inline static size_t write(ostream& ostr, const std::string& str) {
+      size_t len = str.length();
+      type_traits<size_t>::write(ostr, len);
+      ostr.write(str.data(), len);
+      //ostr << str;
+      return len + sizeof(size_t); 
+    }
+
+    inline static bool read(std::basic_istream<char>& istr, std::string& val) {
+      size_t len = 0;
+      if (!type_traits<size_t >::read(istr, len)) {
+        // ...
+        return false;
+      }
+      val.resize(len);
+      istr.read(val.data(), len);
+
+      return istr.good();
+    }
+
+    inline static auto candidates(const std::string value) {
+      return std::make_tuple(
+        static_cast<std::string>(value)
+      );
+    }
+
+/*
     inline static size_t write(ostream& ostr, const std::string& ) {
       return 0; 
     }
 
     inline static bool read(std::basic_istream<char>& istr, std::string& val) {
       return istr.good();
-    }
+    }*/
   };
 
   constexpr uint8_t end_marker = 255;

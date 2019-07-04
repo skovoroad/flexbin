@@ -19,6 +19,7 @@ namespace test_data
     uint32_t val32_;
     uint32_t val32_2_;
     uint8_t  val8_;
+    std::string strval_;
 
     test_substruct ss_;
 
@@ -26,12 +27,13 @@ namespace test_data
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
 //    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_)
-    FLEXBIN_SERIALIZE_REQUIRED(val64_)
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, strval_)
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)
     FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
 
     void dump() {
-      std::cout << (int)val64_ << " " << (int)val32_ << " " << (int)val32_2_ << " " << (int)val8_ << " " << ss_.strval_;
+      std::cout << (int)val64_ << " " << (int)val32_ << " " << (int)val32_2_ << " " << (int)val8_ << " " << strval_;
+      
     }
   };
 
@@ -46,7 +48,9 @@ namespace test_data
     return lhs.val64_ == rhs.val64_ &&
       lhs.val32_ == rhs.val32_ &&
       lhs.val32_2_ == rhs.val32_2_ &&
-      lhs.val8_ == rhs.val8_
+      lhs.val8_ == rhs.val8_ && 
+      lhs.strval_ == rhs.strval_
+
     ;
   }
 }
@@ -54,8 +58,8 @@ namespace test_data
 
 int main(int argc, char** argv)
 {
-  test_data::test_struct a{ 1000, 1, 7, 77, { "first"} };
-  test_data::test_struct b{ 0, 2, 8, 88,{ "second"} };
+  test_data::test_struct a{ 1000, 1, 7, 77, { "first"} , "third"};
+  test_data::test_struct b{ 0, 2, 8, 88,{ "second"}, "fourth" };
 
   std::cout << "A: ";
   a.dump();
