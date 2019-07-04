@@ -35,4 +35,8 @@ namespace flexbin
     enum { yes = sizeof(test<T>( 0 )) == sizeof(char) };
   };
 
+
+  template <typename T>
+  using is_vector = std::is_same<T, std::vector< typename T::value_type, typename T::allocator_type > >;
 }
+

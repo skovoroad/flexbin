@@ -11,6 +11,13 @@ namespace flexbin
     //inline static size_t write( std::basic_ostream<char>& ostr, const T& ) { return 0;}
   };
 
+  template<typename T>
+  struct type_traits<std::vector<T>>
+  {
+    enum { code_ = 25};
+  };
+
+
   template<>
   struct type_traits<uint64_t>
   {

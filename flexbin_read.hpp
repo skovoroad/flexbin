@@ -81,7 +81,27 @@ namespace flexbin
 
   };
 
+  template <typename T>
+  struct field_reader< std::vector<T> > {
 
+    static bool read(istream& istr, std::vector < T>& value) {
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, std::vector < T>& value) {
+      size_t len = 0;
+      if (!type_traits<size_t>::read(istr, len))
+        return false;
+      auto elem_type = type_traits<T>::code_;
+      while (len-- > 0) {
+        T val;
+        if (!field_reader<T>::unpack_value(istr, elem_type, val))
+          return false;
+        value.push_back(val);
+      }
+      return istr.good();
+    }
+
+  };
 
   //////////////////////////
   // Write strategies: fixes, optional, required, simplified

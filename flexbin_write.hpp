@@ -90,6 +90,25 @@ namespace flexbin
     }
   };
 
+  template <typename T>
+  struct field_writer< std::vector<T> > {
+    static size_t write(ostream& ostr, const std::vector<T> & value) {
+      size_t size = value.size();
+      ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
+      
+      for (const auto & v : value)
+        field_writer<T>::write(ostr, v);
+      return size;
+    }
+
+    static size_t pack(ostream& ostr, uint8_t field_id, const std::vector<T>& value) {
+      uint8_t code = type_traits<std::vector<T>>::code_;
+      ostr.write(reinterpret_cast<const char*>(&code), 1);
+      ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      return write(ostr, value);
+    }
+  };
+
 //////////////////////////
 // Write strategies: fixes, optional, required, simplified
   template<typename T>    
