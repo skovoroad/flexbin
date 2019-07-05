@@ -19,6 +19,28 @@ namespace flexbin
 
 
   template<>
+  struct type_traits<bool>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 1 };
+
+    inline static auto candidates(const bool& value) {
+      return std::make_tuple(value);
+    }
+
+    inline static size_t write( ostream& ostr, const bool& val) { 
+      ostr.write(reinterpret_cast<const char*>(&val), 1);
+      return 1; 
+    }
+
+    inline static bool read(istream& istr, bool& val) {
+      istr.read(reinterpret_cast<char*>(&val), 1);
+      return istr.good();
+    }
+  };
+
+
+  template<>
   struct type_traits<uint64_t>
   {
     enum { default_value_ = 0 };
@@ -148,15 +170,6 @@ namespace flexbin
         static_cast<std::string>(value)
       );
     }
-
-/*
-    inline static size_t write(ostream& ostr, const std::string& ) {
-      return 0; 
-    }
-
-    inline static bool read(std::basic_istream<char>& istr, std::string& val) {
-      return istr.good();
-    }*/
   };
 
   constexpr uint8_t end_marker = 255;

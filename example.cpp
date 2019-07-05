@@ -9,6 +9,7 @@ namespace test_data
   struct test_substruct
   {
     std::string strval_;
+    bool boolean_;    
 
     FLEXBIN_CLASS_ID(666);
 
@@ -25,11 +26,12 @@ namespace test_data
     test_substruct ss_;
     std::vector<uint64_t> vect_;
     std::vector<test_substruct> vect2_;
+    bool boolean_;
 
     FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ , strval_, vect_, vect2_)
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ ,strval_, vect_, vect2_)
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)
     FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
 
@@ -44,6 +46,7 @@ namespace test_data
           std::cout <<  " " << v;
         for (auto & v : vect2_)
           std::cout <<  " " << v.strval_;
+        std::cout << " " << boolean_ << " "<< ss_.boolean_;
 
 //      std::cout << (int)val64_ << " " << ss_.strval_;
     }
@@ -53,7 +56,25 @@ namespace test_data
       vect2_.clear();
 
     }
+
   };
+
+
+    struct test_struct2{
+      bool boolean_ = false;
+
+      FLEXBIN_CLASS_ID(888);
+      FLEXBIN_SERIALIZE_REQUIRED(boolean_)
+
+      void dump() {
+        std::cout << " " << boolean_ ;
+      };
+      void reset() {};
+
+      bool operator==(const test_struct2& rhs) {
+        return boolean_ == rhs.boolean_;
+      }
+    };
 
   inline bool operator==(const test_struct& lhs, const test_struct& rhs)
   {
@@ -76,11 +97,15 @@ namespace test_data
 
 int main(int argc, char** argv)
 {
-  test_data::test_struct a{ 1000, 1, 7, 77,  "third", { "first"} ,  {567, 765},
-   { {"substruct 1"}, {"substruct 2"}  } };
-  test_data::test_struct b{ 0, 2, 8, 88, "fourth", { "second"} , {234, 432} ,
-   { {"3 s u b s t r u c t"}, {" 4 s u b s t r u c t"}  }
+  test_data::test_struct a{ 1000, 1, 7, 77,  "third", { "first", false} ,  {567, 765},
+   { {"substruct 1", false}, {"substruct 2", false}  }, true };
+
+  test_data::test_struct b{ 0, 2, 8, 88, "fourth", { "second", true} , {234, 432} ,
+   { {"3 s u b s t r u c t", true}, {" 4 s u b s t r u c t", true}}, false  
   };
+
+  //test_data::test_struct2 a {true};
+  //test_data::test_struct2 b {false};
 
   std::cout << "A: ";
   a.dump();
@@ -112,7 +137,7 @@ int main(int argc, char** argv)
   std::ios_base::fmtflags f(std::cout.flags());
   //for (size_t i = 0; i < fbuf.str().size(); ++i)
     //std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char) fbuf.str()[i] << " ";
-  for (size_t i = 0; i < 128; ++i)
+  for (size_t i = 0; i < bufsize; ++i)
     std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char)mem[i] << " ";
   std::cout << std::endl;
   std::cout.flags(f);
@@ -121,7 +146,7 @@ int main(int argc, char** argv)
   uint16_t classid(0);
   //std::string str = fbuf.str();
   //if (!flexbin::class_id(str.data(), str.size(), classid))
-  if (!flexbin::class_id(mem, 128, classid))
+  if (!flexbin::class_id(mem, bufsize, classid))
   {
     std::cerr << "error getting classid" << std::endl;
   }
@@ -156,6 +181,8 @@ int main(int argc, char** argv)
 }
 
   // todo:
+// 0  enum
+// 2 bool
   // + 1. compact value representation
   // + 2. flexbin fields encoding
   // + 3. required, fixed, optional, simplified
