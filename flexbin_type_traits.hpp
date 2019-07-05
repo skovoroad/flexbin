@@ -4,12 +4,35 @@
 
 namespace flexbin
 {
-  template<typename T>
+  template<typename T, class Enabler = void>
   struct type_traits
   {
     enum { code_ = 29 /* "object" field id */ };
     //inline static size_t write( std::basic_ostream<char>& ostr, const T& ) { return 0;}
   };
+
+  template<typename T>
+  struct type_traits<T, std::enable_if_t<std::is_enum<T>::value> >
+  {
+    enum { code_ = 200 };
+    enum { default_value_ = 0 };
+    constexpr static size_t enum_bytes = 2;
+
+    inline static auto candidates(const T& value) {
+      return std::make_tuple(value);
+    }
+
+    inline static size_t write( ostream& ostr, const T& val) { 
+      ostr.write(reinterpret_cast<const char*>(&val), enum_bytes);
+      return enum_bytes; 
+    }
+
+    inline static bool read(istream& istr, T& val) {
+      istr.read(reinterpret_cast<char*>(&val), enum_bytes);
+      return istr.good();
+    }
+  };
+
 
   template<typename T>
   struct type_traits<std::vector<T>>

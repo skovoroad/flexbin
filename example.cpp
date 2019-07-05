@@ -28,18 +28,24 @@ namespace test_data
     std::vector<test_substruct> vect2_;
     bool boolean_;
 
+    enum SomeEnum { SomeOne, SomeTwo, SomeThree};
+    SomeEnum enum_;
+
     FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ ,strval_, vect_, vect2_, boolean_)
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ ,strval_, vect_, vect2_, boolean_
+      , enum_
+      )
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)
     FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
     
 //    FLEXBIN_SERIALIZE_REQUIRED( vect2_, boolean_)
 
     void dump() {
-      std::cout << (int)val64_ << " " << (int)val32_ << " " << (int)val32_2_ << " " << (int)val8_ << " " << strval_
-        << " " << ss_.strval_;
+      std::cout << (int)val64_ << " " << (int)val32_ << " " 
+        << (int)val32_2_ << " " << (int)val8_ << " " << strval_
+        << " " << ss_.strval_ << enum_;
         ;
       // " " << vect_
         std::cout << " | ";
@@ -51,7 +57,7 @@ namespace test_data
         std::cout << " | ";
         std::cout << " " << boolean_ << " "<< ss_.boolean_;
 
-//      std::cout << (int)val64_ << " " << ss_.strval_;
+      std::cout << " "<< enum_ << " " ;
     }
 
     void reset() {
@@ -97,14 +103,16 @@ namespace test_data
   }
 }
 
-
 int main(int argc, char** argv)
 {
   test_data::test_struct a{ 1000, 1, 7, 77,  "third", { "first", false} ,  {567, 765},
-   { {"substruct 1", false}, {"substruct 2", false}  }, true };
+   { {"substruct 1", false}, {"substruct 2", false}  }, true, 
+   test_data::test_struct::SomeOne 
+ };
 
   test_data::test_struct b{ 0, 2, 8, 88, "fourth", { "second", true} , {234, 432} ,
-   { {"3 s u b s t r u c t", true}, {" 4 s u b s t r u c t", true}}, false  
+   { {"3 s u b s t r u c t", true}, {" 4 s u b s t r u c t", true}}, false ,
+   test_data::test_struct::SomeTwo 
   };
 
   //test_data::test_struct2 a {true};
@@ -185,7 +193,6 @@ int main(int argc, char** argv)
 
   // todo:
 // 0  enum
-// 2 bool
   // + 1. compact value representation
   // + 2. flexbin fields encoding
   // + 3. required, fixed, optional, simplified

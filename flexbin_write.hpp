@@ -91,6 +91,20 @@ namespace flexbin
   };
 
   template <typename T>
+  struct field_writer<T, std::enable_if_t<std::is_enum<T>::value> > { 
+
+    static size_t write( ostream& ostr, const T& value) {  
+      return type_traits<T>::write(ostr, value);
+    }
+
+    static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
+      //return type_traits<T>::pack(ostr, value);
+      return pack_value(ostr, value, field_id);
+    }
+  };
+
+
+  template <typename T>
   struct field_writer< std::vector<T> > {
     static size_t write(ostream& ostr, const std::vector<T> & value) {
       size_t size = value.size();

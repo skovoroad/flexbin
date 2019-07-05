@@ -78,8 +78,22 @@ namespace flexbin
       flexbin::unpack_value(istr, type, value);
       return istr.good(); 
     }
+  };
+
+  template <typename T>
+  struct field_reader<T, std::enable_if_t<std::is_enum<T>::value> > {
+
+    static bool read(istream& istr, T& value) {
+      return type_traits<T>::read(istr, value);
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, T& value) {
+      flexbin::unpack_value(istr, type, value);
+      return istr.good(); 
+    }
 
   };
+
 
   template <typename T>
   struct field_reader< std::vector<T> > {
