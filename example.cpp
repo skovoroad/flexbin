@@ -29,7 +29,7 @@ namespace test_data
     FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ , strval_, vect_)
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ , strval_, vect_, vect2_)
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)
     FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
 
@@ -42,8 +42,16 @@ namespace test_data
       // " " << vect_
         for (auto & v : vect_)
           std::cout <<  " " << v;
+        for (auto & v : vect2_)
+          std::cout <<  " " << v.strval_;
 
 //      std::cout << (int)val64_ << " " << ss_.strval_;
+    }
+
+    void reset() {
+      vect_.clear();
+      vect2_.clear();
+
     }
   };
 
@@ -68,8 +76,11 @@ namespace test_data
 
 int main(int argc, char** argv)
 {
-  test_data::test_struct a{ 1000, 1, 7, 77,  "third", { "first"} ,  {567, 765} };
-  test_data::test_struct b{ 0, 2, 8, 88, "fourth", { "second"} , {234, 432} };
+  test_data::test_struct a{ 1000, 1, 7, 77,  "third", { "first"} ,  {567, 765},
+   { {"substruct 1"}, {"substruct 2"}  } };
+  test_data::test_struct b{ 0, 2, 8, 88, "fourth", { "second"} , {234, 432} ,
+   { {"3 s u b s t r u c t"}, {" 4 s u b s t r u c t"}  }
+  };
 
   std::cout << "A: ";
   a.dump();
@@ -80,10 +91,11 @@ int main(int argc, char** argv)
   std::cout << std::endl;
 
   //std::stringbuf fbuf;
-  char mem[128];
+  constexpr size_t bufsize = 256;
+  char mem[bufsize];
   //std::memset(mem, 0, 128);
-  std::fill(mem, mem+128, 0);
-  flexbin::memmap_buffer fbuf(mem, mem + 128);
+  std::fill(mem, mem+bufsize, 0);
+  flexbin::memmap_buffer fbuf(mem, mem + bufsize);
 
   flexbin::istream fbin(&fbuf);
   flexbin::ostream fbout(&fbuf);
@@ -123,7 +135,7 @@ int main(int argc, char** argv)
   //    std::cerr << "Bad b size! real size: " << str.size() << std::endl;
 
     //fbout.flush();
-  a.vect_.clear();
+  a.reset();
 
   fbin >> a;
   if (!fbin) {
@@ -144,7 +156,6 @@ int main(int argc, char** argv)
 }
 
   // todo:
-  //  0. test vector of structs
   // + 1. compact value representation
   // + 2. flexbin fields encoding
   // + 3. required, fixed, optional, simplified
