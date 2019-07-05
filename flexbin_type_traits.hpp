@@ -90,6 +90,32 @@ namespace flexbin
   };
 
   template<>
+  struct type_traits<int64_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 17 };
+
+    inline static auto candidates(const int64_t& value) {
+      return std::make_tuple(
+        static_cast<int8_t>(value),
+        static_cast<int16_t>(value),
+        static_cast<int32_t>(value),
+        static_cast<int64_t>(value)
+      );
+    }
+
+    inline static size_t write( ostream& ostr, const int64_t& val) { 
+      ostr.write(reinterpret_cast<const char*>(&val), sizeof(int64_t));
+      return sizeof(int64_t); 
+    }
+
+    inline static bool read(istream& istr, int64_t& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(int64_t));
+      return istr.good();
+    }
+  };
+
+  template<>
   struct type_traits<uint32_t>
   {
     enum { default_value_ = 0 };
@@ -110,6 +136,31 @@ namespace flexbin
         static_cast<uint8_t>(value),
         static_cast<uint16_t>(value),
         static_cast<uint32_t>(value)
+      );
+    }
+  };
+
+  template<>
+  struct type_traits<int32_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 9 };
+
+    inline static size_t write(ostream& ostr, const int32_t& val ) {
+      ostr.write(reinterpret_cast<const char*>(&val), sizeof(int32_t));
+      return sizeof(int32_t); 
+     }
+
+    inline static bool read(istream& istr, int32_t& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(int32_t));
+      return istr.good();
+    }
+
+    inline static auto candidates(const int32_t& value)  {
+      return std::make_tuple(
+        static_cast<int8_t>(value),
+        static_cast<int16_t>(value),
+        static_cast<int32_t>(value)
       );
     }
   };
@@ -138,6 +189,30 @@ namespace flexbin
     }
   };
 
+  template<>
+  struct type_traits<int16_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 5 };
+
+    inline static size_t write(ostream& ostr, const int16_t& val) {
+      ostr.write(reinterpret_cast<const char*>(&val), sizeof(int16_t));
+      return sizeof(int16_t);
+    }
+
+    inline static bool read(istream& istr, int16_t& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(int16_t));
+      return istr.good();
+    }
+
+    inline static auto candidates(const int16_t& value) {
+      return std::make_tuple(
+        static_cast<int8_t>(value),
+        static_cast<int16_t>(value)
+      );
+    }
+  };
+
 
   template<>
   struct type_traits<uint8_t>
@@ -161,6 +236,30 @@ namespace flexbin
       );
     }
   };
+
+  template<>
+  struct type_traits<int8_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 3 };
+    
+    inline static size_t write(ostream& ostr, const int8_t& val ) {
+      ostr.write(reinterpret_cast<const char*>(&val), sizeof(int8_t));
+      return sizeof(int8_t); 
+     }
+
+    inline static bool read(istream& istr, int8_t& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(int8_t));
+      return istr.good();
+    }
+
+    inline static auto candidates(const int8_t& value) {
+      return std::make_tuple(
+        static_cast<int8_t>(value)
+      );
+    }
+  };
+
 
   template<>
   struct type_traits<std::string>

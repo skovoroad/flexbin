@@ -288,7 +288,7 @@ namespace flexbin
 
    // Read simplified fields if not exists
     template<typename C = bool>
-    typename std::enable_if< !fixed_fields_exists , C >::type
+    typename std::enable_if< !simplified_fields_exists , C >::type
     read_simplified_fields( istream& ostr, T& obj ) {
       return true;
     }

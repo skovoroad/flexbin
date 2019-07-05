@@ -37,14 +37,15 @@ namespace test_data
     FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ ,strval_, vect_, vect2_, boolean_
       , enum_
       )
-    FLEXBIN_SERIALIZE_OPTIONAL(val8_)
-    FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
+    //FLEXBIN_SERIALIZE_OPTIONAL(val8_)
+    //FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
     
 //    FLEXBIN_SERIALIZE_REQUIRED( vect2_, boolean_)
 
     void dump() {
       std::cout << (int)val64_ << " " << (int)val32_ << " " 
-        << (int)val32_2_ << " " << (int)val8_ << " " << strval_
+        //<< (int)val32_2_ << " " << (int)val8_ 
+      << " " << strval_
         << " " << ss_.strval_ << enum_;
         ;
       // " " << vect_
