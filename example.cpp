@@ -37,8 +37,8 @@ namespace test_data
     FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ ,strval_, vect_, vect2_, boolean_
       , enum_
       )
-    FLEXBIN_SERIALIZE_OPTIONAL(val8_)
-    FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
+    //FLEXBIN_SERIALIZE_OPTIONAL(val8_)
+    //FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
     
 //    FLEXBIN_SERIALIZE_REQUIRED( vect2_, boolean_)
 

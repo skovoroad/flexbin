@@ -16,7 +16,7 @@ namespace flexbin
   {
     enum { code_ = 200 };
     enum { default_value_ = 0 };
-    constexpr static size_t enum_bytes = 2;
+    constexpr static size_t enum_bytes = sizeof(T);
 
     inline static auto candidates(const T& value) {
       return std::make_tuple(value);
