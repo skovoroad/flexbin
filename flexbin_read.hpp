@@ -55,8 +55,8 @@ namespace flexbin
 
   };
 
-  template <>
-  struct field_reader<std::string, void> {
+  template <typename T>
+  struct field_reader<T, std::enable_if_t<std::is_base_of<std::string, T>::value> > {    
     static bool read(istream& istr, std::string& value) {
       return type_traits<std::string>::read(istr, value);
     }

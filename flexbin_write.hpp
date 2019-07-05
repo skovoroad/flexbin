@@ -62,9 +62,9 @@ namespace flexbin
     }
   };
 
-  template <>
-  struct field_writer<std::string, void> { 
-
+  template <typename T>
+  //struct field_writer<std::string, void> 
+  struct field_writer<T, std::enable_if_t<std::is_base_of<std::string, T>::value> > {
     static size_t write( ostream& ostr, const std::string& value) {
       return type_traits<std::string>::write(ostr, value);
     }
