@@ -1,6 +1,7 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 #include "flexbin.hpp"
 
 namespace test_data
@@ -23,6 +24,8 @@ namespace test_data
     std::string strval_;
     test_substruct ss_;
     std::vector<uint64_t> vect_;
+    std::vector<test_substruct> vect2_;
+
     FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
@@ -78,7 +81,8 @@ int main(int argc, char** argv)
 
   //std::stringbuf fbuf;
   char mem[128];
-  std::memset(mem, 0, 128);
+  //std::memset(mem, 0, 128);
+  std::fill(mem, mem+128, 0);
   flexbin::memmap_buffer fbuf(mem, mem + 128);
 
   flexbin::istream fbin(&fbuf);
@@ -140,10 +144,11 @@ int main(int argc, char** argv)
 }
 
   // todo:
+  //  0. test vector of structs
   // + 1. compact value representation
   // + 2. flexbin fields encoding
   // + 3. required, fixed, optional, simplified
-  // 4. flexstring
+  // + 4. flexstring
   // 5. all types support
   // 6. tests
   // + 7. write complex object ?
@@ -153,26 +158,10 @@ int main(int argc, char** argv)
   // 12. Maybe optimize if only fixed fields?
   // 13. error handling
 // 14. Default value for string, T
+// 15. Different defaults for different members
+// 16. stringview
+// 17. read without tuples
+// 18. refer right to substruct fields
+// 19. debug build checks (same class id etc)
 
-  /*
-    to pack value we need to:
-  1. get tuple of all descent types (from traits)
-  2. iterate from smallest type to largest
-   if static_cast<small>() returns equal value - write it
-  3. remove pack/write member-functions from traits
-  4. move pack/write function to flexbin_write_strategies.hpp
-  5. do we need field_writer structure? can we use just functions?
-
-  */
-
-  // questions
-  // fixed cannot be supported for strings (no place for length)
-
-//  !!!!!!!!!!!!!!!!!!!!!!!!
-// VC++ this work
-//  constexpr size_t sizeof_funptr = sizeof(&test_data::test_struct::flexbin_serialize_optional);
-//  flexbin::creatable_non_zero< sizeof_funptr  > tt(0);
-
-// VC++ this doesn't work
-//  flexbin::creatable_non_zero< sizeof(&test_data::test_struct::flexbin_serialize_optional) > ttt(0);
 
