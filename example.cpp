@@ -13,7 +13,7 @@ namespace test_data
 
     FLEXBIN_CLASS_ID(666);
 
-    FLEXBIN_SERIALIZE_REQUIRED(strval_)
+    FLEXBIN_SERIALIZE_REQUIRED(strval_, boolean_)
   };
 
   struct test_struct
@@ -31,21 +31,24 @@ namespace test_data
     FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ ,strval_, vect_, vect2_)
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ ,strval_, vect_, vect2_, boolean_)
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)
     FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
-
-    //FLEXBIN_SERIALIZE_REQUIRED(ss_, val64_ )
+    
+//    FLEXBIN_SERIALIZE_REQUIRED( vect2_, boolean_)
 
     void dump() {
       std::cout << (int)val64_ << " " << (int)val32_ << " " << (int)val32_2_ << " " << (int)val8_ << " " << strval_
         << " " << ss_.strval_;
         ;
       // " " << vect_
+        std::cout << " | ";
         for (auto & v : vect_)
           std::cout <<  " " << v;
+        std::cout << " | ";
         for (auto & v : vect2_)
-          std::cout <<  " " << v.strval_;
+          std::cout <<  " " << v.strval_ << " " <<  v.boolean_;
+        std::cout << " | ";
         std::cout << " " << boolean_ << " "<< ss_.boolean_;
 
 //      std::cout << (int)val64_ << " " << ss_.strval_;
