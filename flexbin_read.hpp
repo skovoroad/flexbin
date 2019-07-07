@@ -119,6 +119,20 @@ namespace flexbin
   };
 
   template <typename T>
+  struct field_reader< std::unique_ptr<T> > {
+
+    static bool read(istream& istr, std::unique_ptr<T>& value) {
+      return field_reader<T>::read(istr, *value);
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, std::unique_ptr<T>& value) {
+      if(!value)
+        value = std::make_unique<T>();
+      return field_reader<T>::unpack_value(istr, type, *value);
+    }
+  };
+
+  template <typename T>
   struct field_reader< std::shared_ptr<T> > {
 
     static bool read(istream& istr, std::shared_ptr<T>& value) {

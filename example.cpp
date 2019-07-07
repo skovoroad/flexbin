@@ -12,6 +12,10 @@ namespace test_data
 
   struct test_substruct
   {
+    test_substruct() {}
+    test_substruct(const char * s, bool b) 
+    : strval_(s), boolean_(b) {}
+
     std::string strval_;
     bool boolean_;    
 
@@ -28,7 +32,7 @@ namespace test_data
     uint8_t  val8_;
     special_string strval_;
     test_substruct ss_;
-    std::shared_ptr<test_substruct> ss2_;
+    std::unique_ptr<test_substruct> ss2_;
     std::vector<uint64_t> vect_;
     std::vector<test_substruct> vect2_;
     bool boolean_;
@@ -113,14 +117,9 @@ namespace test_data
 
 int main(int argc, char** argv)
 {
-  auto a_ss2_ = std::make_shared<test_data::test_substruct>();
-  *a_ss2_ = { std::string("substr shared"), true};
-  auto b_ss2_ = std::make_shared<test_data::test_substruct>();
-  *b_ss2_ = { std::string("substr 22 shared"), false};
-
   test_data::test_struct a{ 1000, 1, 7, 77,  "third", 
    { "first", false} ,  
-   a_ss2_,   
+   std::make_unique<test_data::test_substruct>("substr shared", true),
    {567, 765},
    { {"substruct 1", false}, {"substruct 2", false}  }, true, 
    test_data::test_struct::SomeOne 
@@ -128,7 +127,7 @@ int main(int argc, char** argv)
 
   test_data::test_struct b{ 0, 2, 8, 88, "fourth",
    { "second", true} , 
-   b_ss2_,
+   std::make_unique<test_data::test_substruct>("substr 313 shared", false),
    {234, 432} ,
    { {"3 s u b s t r u c t", true}, {" 4 s u b s t r u c t", true}}, false ,
    test_data::test_struct::SomeTwo 
