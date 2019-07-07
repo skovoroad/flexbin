@@ -1,6 +1,7 @@
 #pragma once
 #include <assert.h>
 #include <stack>
+#include <memory>
 #include "flexbin_streams.hpp"
 #include "flexbin_aux.hpp"
 
@@ -122,6 +123,18 @@ namespace flexbin
       return write(ostr, value);
     }
   };
+
+  template <typename T>
+  struct field_writer< std::shared_ptr<T> > {
+    static size_t write(ostream& ostr, const std::shared_ptr<T> & value) {      
+      return field_writer<T>::write(ostr, *value);
+    }
+
+    static size_t pack(ostream& ostr, uint8_t field_id, const std::shared_ptr<T>& value) {
+      return field_writer<T>::pack(ostr, field_id, *value);
+    }
+  };
+
 
 //////////////////////////
 // Write strategies: fixes, optional, required, simplified

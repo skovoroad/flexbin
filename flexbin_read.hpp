@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "flexbin_streams.hpp"
 #include "flexbin_aux.hpp"
 
@@ -116,6 +117,21 @@ namespace flexbin
     }
 
   };
+
+  template <typename T>
+  struct field_reader< std::shared_ptr<T> > {
+
+    static bool read(istream& istr, std::shared_ptr<T>& value) {
+      return field_reader<T>::read(istr, *value);
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, std::shared_ptr<T>& value) {
+      if(!value)
+        value = std::make_shared<T>();
+      return field_reader<T>::unpack_value(istr, type, *value);
+    }
+  };
+
 
   //////////////////////////
   // Write strategies: fixes, optional, required, simplified

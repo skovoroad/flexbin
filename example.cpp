@@ -28,6 +28,7 @@ namespace test_data
     uint8_t  val8_;
     special_string strval_;
     test_substruct ss_;
+    std::shared_ptr<test_substruct> ss2_;
     std::vector<uint64_t> vect_;
     std::vector<test_substruct> vect2_;
     bool boolean_;
@@ -38,7 +39,7 @@ namespace test_data
     FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ ,strval_, vect_, vect2_, boolean_
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ , ss2_, strval_, vect_, vect2_, boolean_
       , enum_
       )
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)
@@ -50,8 +51,10 @@ namespace test_data
       std::cout << (int)val64_ << " " << (int)val32_ << " " 
         << (int)val32_2_ << " " << (int)val8_ 
         << " " << strval_
-        << " " << ss_.strval_ << enum_;
+        << " " << ss_.strval_ << " " << enum_ 
+        << ss2_->strval_ << " " << ss2_->boolean_
         ;
+
       // " " << vect_
         std::cout << " | ";
         for (auto & v : vect_)
@@ -110,12 +113,23 @@ namespace test_data
 
 int main(int argc, char** argv)
 {
-  test_data::test_struct a{ 1000, 1, 7, 77,  "third", { "first", false} ,  {567, 765},
+  auto a_ss2_ = std::make_shared<test_data::test_substruct>();
+  *a_ss2_ = { std::string("substr shared"), true};
+  auto b_ss2_ = std::make_shared<test_data::test_substruct>();
+  *b_ss2_ = { std::string("substr 22 shared"), false};
+
+  test_data::test_struct a{ 1000, 1, 7, 77,  "third", 
+   { "first", false} ,  
+   a_ss2_,   
+   {567, 765},
    { {"substruct 1", false}, {"substruct 2", false}  }, true, 
    test_data::test_struct::SomeOne 
  };
 
-  test_data::test_struct b{ 0, 2, 8, 88, "fourth", { "second", true} , {234, 432} ,
+  test_data::test_struct b{ 0, 2, 8, 88, "fourth",
+   { "second", true} , 
+   b_ss2_,
+   {234, 432} ,
    { {"3 s u b s t r u c t", true}, {" 4 s u b s t r u c t", true}}, false ,
    test_data::test_struct::SomeTwo 
   };
@@ -197,7 +211,7 @@ int main(int argc, char** argv)
 }
 
   // todo:
-// 0  enum
+// 0  shared_ptr, vector - make write/read functions (for fixed fields)
   // + 1. compact value representation
   // + 2. flexbin fields encoding
   // + 3. required, fixed, optional, simplified
