@@ -10,6 +10,8 @@
 #include "flexbin_streams.hpp"
 #include "flexbin_buffer.hpp"
 
+#include "flexbin_debug.hpp"
+
 #define FLEXBIN_CLASS_ID(id)  enum { flexbin_class_id = id };
 
 #define FLEXBIN_SERIALIZE_FIXED(...) \
@@ -85,7 +87,10 @@ namespace flexbin
     memmap_buffer buffer(reinterpret_cast<const char *>(0), static_cast<size_t>(0) );
     ostream ostr(&buffer, true);
     ostr << obj;
-    return ostr.written_count(); 
+    auto retval = ostr.written_count();
+    FLEXBIN_DEBUG_LOG("class_object_size " << retval)
+    return retval;
+    
   }
 
 
