@@ -46,10 +46,10 @@ namespace flexbin
   struct field_reader {
 
     static bool read(istream& istr, T& value) {
-      FLEXBIN_DEBUG_LOG("  read object, type " << (int)type << " class_id " << (int)T::flexbin_class_id )
+      FLEXBIN_DEBUG_LOG("  read object, type " << (int)type_traits<T>::code_ << " class_id " << (int)T::flexbin_class_id )
       istr >> value;
       bool retval = istr.good();
-      FLEXBIN_DEBUG_LOG("  read object end, type " << (int)type << " class_id " << (int)T::flexbin_class_id << " retval " << retval)
+      FLEXBIN_DEBUG_LOG("  read object end, type " << (int)type_traits<T>::code_ << " class_id " << (int)T::flexbin_class_id << " retval " << retval)
       return retval;
     }
 
@@ -168,7 +168,7 @@ namespace flexbin
       if(!value)
         value = std::make_shared<T>();
       bool retval = field_reader<T>::unpack_value(istr, type, *value);
-      FLEXBIN_DEBUG_LOG("unpack_value shared_ptr: field_id" << field_id << (int)type << " retval " << retval << " type: " << type_traits<T>::code_)
+      FLEXBIN_DEBUG_LOG("unpack_value shared_ptr: type" << (int)type_traits<T>::code_ << " retval " << retval )
       return retval;
     }
   };

@@ -2,6 +2,8 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+
+#define FLEXBIN_DEBUG_LOG_ON
 #include "flexbin.hpp"
 
 namespace test_data

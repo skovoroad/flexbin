@@ -106,7 +106,7 @@ namespace flexbin
   struct field_writer<T, std::enable_if_t<std::is_enum<T>::value> > { 
 
     static size_t write( ostream& ostr, const T& value) {  
-      FLEXBIN_DEBUG_LOG("write enum field: field_id" << field_id << " value " << (int)value)
+      FLEXBIN_DEBUG_LOG("write enum field:  value " << (int)value)
       return type_traits<T>::write(ostr, value);
     }
 
@@ -141,7 +141,7 @@ namespace flexbin
   template <typename T>
   struct field_writer< std::unique_ptr<T> > {
     static size_t write(ostream& ostr, const std::unique_ptr<T> & value) {      
-      FLEXBIN_DEBUG_LOG("write unique_ptr field: field id " << (int)field_id << " type: " << type_traits<T>::code_)
+      FLEXBIN_DEBUG_LOG("write unique_ptr field: type: " << type_traits<T>::code_)
       return field_writer<T>::write(ostr, *value);
     }
 
@@ -154,7 +154,7 @@ namespace flexbin
   template <typename T>
   struct field_writer< std::shared_ptr<T> > {
     static size_t write(ostream& ostr, const std::shared_ptr<T> & value) {      
-      FLEXBIN_DEBUG_LOG("write shared_ptr field: field id " << (int)field_id << " type: " << type_traits<T>::code_)
+      FLEXBIN_DEBUG_LOG("write shared_ptr field: field id type: " << type_traits<T>::code_)
       return field_writer<T>::write(ostr, *value);
     }
 
