@@ -151,10 +151,13 @@ int main(int argc, char** argv)
   char mem[bufsize];
   //std::memset(mem, 0, 128);
   std::fill(mem, mem+bufsize, 0);
-  flexbin::memmap_buffer fbuf(mem, mem + bufsize);
+//  flexbin::memmap_buffer fbuf(mem, mem + bufsize);
+//  flexbin::istream fbin(&fbuf);
+//  flexbin::ostream fbout(&fbuf);
 
-  flexbin::istream fbin(&fbuf);
-  flexbin::ostream fbout(&fbuf);
+  flexbin::istream fbin(mem, bufsize);
+  flexbin::ostream fbout(mem, bufsize);
+
 
   auto b_size = flexbin::class_object_size(b);
   std::cerr << "b size" << b_size << std::endl;

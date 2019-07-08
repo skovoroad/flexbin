@@ -201,8 +201,7 @@ namespace flexbin
   struct flexbin_writer
   {
     uint8_t field_id = 0;
-    //std::stack<std::streampos> object_size_pos;
-    std::stack<int> object_size_pos;
+    std::stack<std::streamsize> object_size_pos;
     bool success_ = true;
 
     constexpr static bool required_fields_exists = (has_required_fields<T>::yes != 0);
@@ -214,7 +213,8 @@ namespace flexbin
     bool write_header(ostream& ostr, const T& obj)
     {
       uint32_t object_size = 0; 
-      int size_pos = ostr.tellp();
+      //int size_pos = ostr.tellp();
+      std::streamsize size_pos = ostr.written_count();
 
       if (size_pos < 0)
         throw(std::ios_base::failure("inapproriate type of buffer doesn't support rewind "));
@@ -232,9 +232,22 @@ namespace flexbin
     {
       ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
 
-      int object_end_pos = ostr.tellp();
+      std::streamsize object_end_pos = ostr.written_count();
       assert(!object_size_pos.empty());
-      int size_pos = object_size_pos.top();
+      std::streamsize size_pos = object_size_pos.top();
+
+      if(object_end_pos <= size_pos) {
+        FLEXBIN_DEBUG_LOG("ERROR write bottom, bad size pos: class id " << (int)T::flexbin_class_id << 
+          " size_pos " << size_pos << " object_end_pos " << object_end_pos )
+        return false;
+      }
+      auto object_size = static_cast<uint32_t>(object_end_pos - size_pos);      
+      FLEXBIN_DEBUG_LOG("== write object bottom: class id " << (int)T::flexbin_class_id << " size_pos " << size_pos
+          << " object_size " << object_size
+        )
+      ostr.write_direct(size_pos, reinterpret_cast<const char *> (&object_size), sizeof(object_size));
+      object_size_pos.pop();
+/*
       if (object_end_pos > size_pos) { // real writing, not just counting object size 
 
         auto object_size = static_cast<uint32_t>(object_end_pos - size_pos);
@@ -242,11 +255,13 @@ namespace flexbin
         FLEXBIN_DEBUG_LOG("== write object bottom: class id " << (int)T::flexbin_class_id << " object_end_pos " << object_end_pos
           << " size_pos " << size_pos << " object size " << object_size)
 
-        ostr.seekp(size_pos);
+        auto stream_pos = ostr.tellp();
+
+        ostr.seekp(stream_pos - object_size);
         ostr.write(reinterpret_cast<const char*>(&object_size), 4);
-        ostr.seekp(object_end_pos);
+        ostr.seekp(stream_pos);
         object_size_pos.pop();
-      }
+      }*/
       return true;
     }
 

@@ -8,7 +8,6 @@
 #include "flexbin_write.hpp"
 #include "flexbin_read.hpp"
 #include "flexbin_streams.hpp"
-#include "flexbin_buffer.hpp"
 
 #include "flexbin_debug.hpp"
 
@@ -70,8 +69,7 @@ namespace flexbin
 
   inline bool class_id(const void *data, size_t nbytes,  uint16_t & retval)
   {
-    memmap_buffer buffer(reinterpret_cast<const char *>(data), nbytes);
-    istream istr(&buffer);
+    istream istr(reinterpret_cast<const char *>(data), nbytes);
 
     uint32_t size = 0;
     if (!type_traits<uint32_t>::read(istr, size))
@@ -85,8 +83,7 @@ namespace flexbin
 
   inline bool message_complete(const void *data, size_t nbytes, uint32_t & size)
   {
-    memmap_buffer buffer(reinterpret_cast<const char *>(data), nbytes);
-    istream istr(&buffer);
+    istream istr(reinterpret_cast<const char *>(data), nbytes);
 
     size = 0;
     if (!type_traits<uint32_t>::read(istr, size))
@@ -98,8 +95,7 @@ namespace flexbin
 
   template <typename T>
   inline std::size_t class_object_size(const T& obj) {
-    memmap_buffer buffer(reinterpret_cast<const char *>(0), static_cast<size_t>(0) );
-    ostream ostr(&buffer, true);
+    ostream ostr(reinterpret_cast<char *>(0), static_cast<size_t>(0) , true);
     ostr << obj;
     auto retval = ostr.written_count();
     FLEXBIN_DEBUG_LOG("class_object_size " << retval)
