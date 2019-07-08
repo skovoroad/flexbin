@@ -82,6 +82,19 @@ namespace flexbin
     return true;
   }
 
+  inline bool message_complete(const void *data, size_t nbytes, uint32_t & size)
+  {
+    memmap_buffer buffer(reinterpret_cast<const char *>(data), nbytes);
+    istream istr(&buffer);
+
+    size = 0;
+    if (!type_traits<uint32_t>::read(istr, size))
+      return false;
+
+    return size <= nbytes;
+  }
+
+
   template <typename T>
   inline std::size_t class_object_size(const T& obj) {
     memmap_buffer buffer(reinterpret_cast<const char *>(0), static_cast<size_t>(0) );

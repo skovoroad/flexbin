@@ -157,6 +157,11 @@ int main(int argc, char** argv)
   auto b_size = flexbin::class_object_size(b);
   std::cerr << "b size" << b_size << std::endl;
 
+  uint32_t s;
+  if (!flexbin::message_complete(mem, bufsize, s)) {
+    std::cerr << "message incomplete! size" << s << std::endl;
+  }
+
   fbout << b;
   if (!fbout) {
     std::cerr << "ostr error" << std::endl;
