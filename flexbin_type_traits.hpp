@@ -52,12 +52,17 @@ namespace flexbin
     }
 
     inline static size_t write( ostream& ostr, const bool& val) { 
-      ostr.write(reinterpret_cast<const char*>(&val), 1);
+      char bval = val ? 1 : 0;
+      ostr.write(reinterpret_cast<const char*>(&bval), 1);
       return 1; 
     }
 
     inline static bool read(istream& istr, bool& val) {
-      istr.read(reinterpret_cast<char*>(&val), 1);
+      char bval;
+      istr.read(reinterpret_cast<char*>(&bval), 1);
+      if (bval != 0 && bval != 1)
+        return false;
+      val = bval == 0 ? false : true;
       return istr.good();
     }
   };

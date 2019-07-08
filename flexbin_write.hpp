@@ -55,15 +55,18 @@ namespace flexbin
 
     static size_t write( ostream& ostr, const T& value) { 
       ostr << value;
-      return sizeof(T);  // FUUUUU
+      return 1;  // FUUUUU
     }
 
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) { 
       uint8_t code = type_traits<T>::code_;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-      FLEXBIN_DEBUG_LOG("pack object field: field_id" << field_id )
-      return write(ostr, value);
+      FLEXBIN_DEBUG_LOG("  pack object field: field_id " << (int) field_id << " class id "  << T::flexbin_class_id )
+      auto retval = write(ostr, value);
+      FLEXBIN_DEBUG_LOG("  pack object field end: field_id " << (int)field_id << " class id " << T::flexbin_class_id)
+      return retval;
+
     }
   };
 
@@ -71,7 +74,7 @@ namespace flexbin
   //struct field_writer<std::string, void> 
   struct field_writer<T, std::enable_if_t<std::is_base_of<std::string, T>::value> > {
     static size_t write( ostream& ostr, const std::string& value) {
-      FLEXBIN_DEBUG_LOG("write string field: field_id" << field_id << " value " << value)
+      FLEXBIN_DEBUG_LOG("write string field:  value " << value)
       return type_traits<std::string>::write(ostr, value);
     }
     
@@ -79,7 +82,7 @@ namespace flexbin
       uint8_t code = type_traits<std::string>::code_;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-      FLEXBIN_DEBUG_LOG("pack string field: field_id" << field_id << " value " << value)
+      FLEXBIN_DEBUG_LOG("pack string field: field_id " << (int)field_id << " value " << value)
       return type_traits<std::string>::write(ostr, value) + 2;
     }
   };
@@ -94,7 +97,7 @@ namespace flexbin
 
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
       //return type_traits<T>::pack(ostr, value);
-      FLEXBIN_DEBUG_LOG("pack fundamental type " << (int)type_traits<T>::code_ << " field_id" << field_id << " value " << (int)value)
+      FLEXBIN_DEBUG_LOG("pack fundamental type " << (int)type_traits<T>::code_ << " field_id" << (int) field_id << " value " << (int)value)
       return pack_value(ostr, value, field_id);
     }
   };
@@ -120,18 +123,17 @@ namespace flexbin
     static size_t write(ostream& ostr, const std::vector<T> & value) {
       size_t size = value.size();
       ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
-      FLEXBIN_DEBUG_LOG("write vector field: size" << size )
+      FLEXBIN_DEBUG_LOG("|write vector field: size" << size << " type: " << type_traits<T>::code_ )
       for (const auto & v : value)
         field_writer<T>::write(ostr, v);
-      return size;
+      FLEXBIN_DEBUG_LOG("|write vector " )
+      return size + sizeof(size_t);
     }
 
     static size_t pack(ostream& ostr, uint8_t field_id, const std::vector<T>& value) {
       uint8_t code = type_traits<std::vector<T>>::code_;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-
-      FLEXBIN_DEBUG_LOG("pack vector field: field id " << (int)field_id )
       return write(ostr, value);
     }
   };
@@ -139,12 +141,12 @@ namespace flexbin
   template <typename T>
   struct field_writer< std::unique_ptr<T> > {
     static size_t write(ostream& ostr, const std::unique_ptr<T> & value) {      
-      FLEXBIN_DEBUG_LOG("write unique_ptr field: field id " << (int)field_id)
+      FLEXBIN_DEBUG_LOG("write unique_ptr field: field id " << (int)field_id << " type: " << type_traits<T>::code_)
       return field_writer<T>::write(ostr, *value);
     }
 
     static size_t pack(ostream& ostr, uint8_t field_id, const std::unique_ptr<T>& value) {
-      FLEXBIN_DEBUG_LOG("pack unique_ptr field: field id " << (int)field_id)
+      FLEXBIN_DEBUG_LOG("pack unique_ptr field: field id " << (int)field_id << " type: " << type_traits<T>::code_)
       return field_writer<T>::pack(ostr, field_id, *value);
     }
   };
@@ -152,12 +154,12 @@ namespace flexbin
   template <typename T>
   struct field_writer< std::shared_ptr<T> > {
     static size_t write(ostream& ostr, const std::shared_ptr<T> & value) {      
-      FLEXBIN_DEBUG_LOG("write shared_ptr field: field id " << (int)field_id)
+      FLEXBIN_DEBUG_LOG("write shared_ptr field: field id " << (int)field_id << " type: " << type_traits<T>::code_)
       return field_writer<T>::write(ostr, *value);
     }
 
     static size_t pack(ostream& ostr, uint8_t field_id, const std::shared_ptr<T>& value) {
-      FLEXBIN_DEBUG_LOG("pack shared_ptr field: field id " << (int)field_id)
+      FLEXBIN_DEBUG_LOG("pack shared_ptr field: field id " << (int)field_id << " type: " << type_traits<T>::code_)
       return field_writer<T>::pack(ostr, field_id, *value);
     }
   };
@@ -172,8 +174,9 @@ namespace flexbin
 
   template<typename T>    
   inline size_t write_required( ostream& ostr, uint8_t field_id, const T& value) {
-    FLEXBIN_DEBUG_LOG("write required field: field id " << (int)field_id )
-    return field_writer<T>::pack(ostr, field_id, value);
+    FLEXBIN_DEBUG_LOG("-- write required field: field id " << (int)field_id )
+    auto retval = field_writer<T>::pack(ostr, field_id, value);
+    return retval;
   };
 
   template<typename T>    
@@ -198,7 +201,8 @@ namespace flexbin
   struct flexbin_writer
   {
     uint8_t field_id = 0;
-    std::stack<std::streampos> object_size_pos;
+    //std::stack<std::streampos> object_size_pos;
+    std::stack<int> object_size_pos;
     bool success_ = true;
 
     constexpr static bool required_fields_exists = (has_required_fields<T>::yes != 0);
@@ -210,7 +214,7 @@ namespace flexbin
     bool write_header(ostream& ostr, const T& obj)
     {
       uint32_t object_size = 0; 
-      auto size_pos = ostr.tellp();
+      int size_pos = ostr.tellp();
 
       if (size_pos < 0)
         throw(std::ios_base::failure("inapproriate type of buffer doesn't support rewind "));
@@ -220,7 +224,7 @@ namespace flexbin
 
       uint16_t class_id = T::flexbin_class_id;
       ostr.write(reinterpret_cast<const char*>(&class_id), 2);
-      FLEXBIN_DEBUG_LOG("write object header: class id " << (int)T::flexbin_class_id << " size_pos " << size_pos)
+      FLEXBIN_DEBUG_LOG("== write object header: class id " << (int)T::flexbin_class_id << " size_pos " << size_pos)
       return true;
     }
 
@@ -228,14 +232,14 @@ namespace flexbin
     {
       ostr.write(reinterpret_cast<const char*>(&end_marker), 1);
 
-      auto object_end_pos = ostr.tellp();
+      int object_end_pos = ostr.tellp();
       assert(!object_size_pos.empty());
-      auto size_pos = object_size_pos.top();
+      int size_pos = object_size_pos.top();
       if (object_end_pos > size_pos) { // real writing, not just counting object size 
 
         auto object_size = static_cast<uint32_t>(object_end_pos - size_pos);
 
-        FLEXBIN_DEBUG_LOG("write object bottom: class id " << (int)T::flexbin_class_id << " object_end_pos " << object_end_pos
+        FLEXBIN_DEBUG_LOG("== write object bottom: class id " << (int)T::flexbin_class_id << " object_end_pos " << object_end_pos
           << " size_pos " << size_pos << " object size " << object_size)
 
         ostr.seekp(size_pos);

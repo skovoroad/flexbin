@@ -46,16 +46,19 @@ namespace flexbin
   struct field_reader {
 
     static bool read(istream& istr, T& value) {
+      FLEXBIN_DEBUG_LOG("  read object, type " << (int)type << " class_id " << (int)T::flexbin_class_id )
       istr >> value;
-      FLEXBIN_DEBUG_LOG("read object,  class_id " << (int)T::flexbin_class_id << " retval " << retval)
-      return true;
+      bool retval = istr.good();
+      FLEXBIN_DEBUG_LOG("  read object end, type " << (int)type << " class_id " << (int)T::flexbin_class_id << " retval " << retval)
+      return retval;
     }
 
     static bool unpack_value(istream& istr, uint8_t type, T& value) {
+      FLEXBIN_DEBUG_LOG("  unpack object, type " << (int)type << " class_id " << (int)T::flexbin_class_id )
       istr >> value;
       bool retval = istr.good();
-      FLEXBIN_DEBUG_LOG("unpack object, type " << (int)type << " class_id " << (int)T::flexbin_class_id << " retval " << retval)
-      return istr.good(); 
+      FLEXBIN_DEBUG_LOG("  unpack object end, type " << (int)type << " class_id " << (int)T::flexbin_class_id << " retval " << retval)
+      return retval; 
     }
 
   };
@@ -65,13 +68,13 @@ namespace flexbin
     static bool read(istream& istr, std::string& value) {
         
       auto retval = type_traits<std::string>::read(istr, value);
-      FLEXBIN_DEBUG_LOG("read string, type " << (int)type << " value " << value << " retval " << retval)
+      FLEXBIN_DEBUG_LOG("read string, type " << (int)type_traits<T>::code_ << " value " << value << " retval " << retval)
       return retval;
     }
 
     static bool unpack_value(istream& istr, uint8_t type, std::string& value) {
       flexbin::unpack_value(istr, type, value);
-      FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type << " value " << value)
+      FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type_traits<T>::code_ << " value " << value)
       return istr.good(); 
     }
   };
@@ -86,7 +89,7 @@ namespace flexbin
 
     static bool unpack_value(istream& istr, uint8_t type, T& value) {
       flexbin::unpack_value(istr, type, value);
-      FLEXBIN_DEBUG_LOG("unpack_value fundamental, type " << (int)type << " value " << value)
+      FLEXBIN_DEBUG_LOG("unpack_value fundamental, type " << (int)type_traits<T>::code_ << " value " << value)
       return istr.good(); 
     }
   };
@@ -120,7 +123,7 @@ namespace flexbin
       if (!type_traits<size_t>::read(istr, len))
         return false;
       auto elem_type = type_traits<T>::code_;
-      FLEXBIN_DEBUG_LOG("unpack vector, size " << len << " elem_type " << elem_type)
+      FLEXBIN_DEBUG_LOG("|unpack vector, size " << len << " elem_type " << elem_type)
       while (len-- > 0) {
         T val;
         if (!field_reader<T>::unpack_value(istr, elem_type, val)) {
@@ -129,6 +132,7 @@ namespace flexbin
         }
         value.push_back(val);
       }
+      FLEXBIN_DEBUG_LOG("|unpack vector end, size " << len << " elem_type " << elem_type << " actual size " << value.size())
       return istr.good();
     }
 
@@ -138,7 +142,7 @@ namespace flexbin
   struct field_reader< std::unique_ptr<T> > {
 
     static bool read(istream& istr, std::unique_ptr<T>& value) {
-      FLEXBIN_DEBUG_LOG("read unique_ptr filed")
+      FLEXBIN_DEBUG_LOG("read unique_ptr filed " << " type: " << type_traits<T>::code_)
       return field_reader<T>::read(istr, *value);
     }
 
@@ -146,7 +150,7 @@ namespace flexbin
       if (!value)
         value = std::make_unique<T>();
       bool retval = field_reader<T>::unpack_value(istr, type, *value);
-      FLEXBIN_DEBUG_LOG("unpack_value unique_ptr: type " << (int)type << " retval " << retval)
+      FLEXBIN_DEBUG_LOG("unpack_value unique_ptr: type " << (int)type << " retval " << retval << " type: " << type_traits<T>::code_)
         return retval;
     }
 
@@ -156,7 +160,7 @@ namespace flexbin
   struct field_reader< std::shared_ptr<T> > {
 
     static bool read(istream& istr, std::shared_ptr<T>& value) {
-      FLEXBIN_DEBUG_LOG("read shared_ptr filed:")
+      FLEXBIN_DEBUG_LOG("read shared_ptr filed:" << " type: " << type_traits<T>::code_)
       return field_reader<T>::read(istr, *value);
     }
 
@@ -164,7 +168,7 @@ namespace flexbin
       if(!value)
         value = std::make_shared<T>();
       bool retval = field_reader<T>::unpack_value(istr, type, *value);
-      FLEXBIN_DEBUG_LOG("unpack_value shared_ptr: field_id" << field_id << " type " << (int)type << " retval " << retval)
+      FLEXBIN_DEBUG_LOG("unpack_value shared_ptr: field_id" << field_id << (int)type << " retval " << retval << " type: " << type_traits<T>::code_)
       return retval;
     }
   };
@@ -188,7 +192,7 @@ namespace flexbin
       FLEXBIN_DEBUG_LOG("ERROR read required field: field id " << (int)id << " expected " << field_id)
       return false;
     }
-    FLEXBIN_DEBUG_LOG("read required field: field id " << (int)id )
+    FLEXBIN_DEBUG_LOG("-- read required field: field id " << (int)id )
     return field_reader<T>::unpack_value(istr, type, value);
   };
 
@@ -366,7 +370,7 @@ namespace flexbin
         return false;
       }
 
-      FLEXBIN_DEBUG_LOG("read object header: class id " << (int) id << " size " << size)
+      FLEXBIN_DEBUG_LOG("== read object header: class id " << (int) id << " size " << size)
       return true;
 
     }  
@@ -377,7 +381,7 @@ namespace flexbin
         FLEXBIN_DEBUG_LOG("ERROR read object bottom: class id " << (int)T::flexbin_class_id << " bad marker! " << (int) em)
         return false;
       }
-      FLEXBIN_DEBUG_LOG("read object bottom: class id " << (int)T::flexbin_class_id << " good end marker " << (int)em)
+      FLEXBIN_DEBUG_LOG("== read object bottom: class id " << (int)T::flexbin_class_id << " good end marker " << (int)em)
       return end_marker == em;
     }
   };

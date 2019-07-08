@@ -36,6 +36,7 @@ namespace flexbin
   template<typename T>
   std::basic_ostream<char>& ostream::operator<< (const T& obj)
   {
+    int code = T ::flexbin_class_id;
     flexbin_writer<T> writer;
     if ( !(writer.write_header(*this, obj) &&
       writer.write_fixed_fields(*this, obj) && // fixed fields goes first
