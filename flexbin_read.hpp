@@ -73,7 +73,7 @@ namespace flexbin
     }
 
     static bool unpack_value(istream& istr, uint8_t type, std::string& value) {
-      flexbin::unpack_value(istr, type, value);
+      auto retval = type_traits<std::string>::read(istr, value);
       FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type_traits<T>::code_ << " value " << value)
       return istr.good(); 
     }
