@@ -273,7 +273,7 @@ namespace flexbin
     enum { default_value_ = 0 };
 
     inline static size_t write(ostream& ostr, const std::string& str) {
-      size_t len = str.length();
+      size_t len = str.size();
       type_traits<size_t>::write(ostr, len);
       ostr.write(str.data(), len);
       //ostr << str;
