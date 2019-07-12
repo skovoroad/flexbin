@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <vector>
 #include "flexbin_streams.hpp"
 
 namespace flexbin
