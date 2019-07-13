@@ -1,7 +1,7 @@
 #include <fstream>
 #include "flexbin.hpp"
 
-include "gtest/gtest.h"
+#include "gtest/gtest.h"
 
 namespace test_data
 {
@@ -15,8 +15,8 @@ namespace test_data
 					     const test_struct& rhs)
   {
     std::cout << "comparing "  << std::endl
-      << lhs.val64_ << " " << lhs.val32_ << " " std::endl
-      << rhs.val64_ << " " << rhs.val32_ << " " std::endl
+      << lhs.val64_ << " " << lhs.val32_ << " " << std::endl
+      << rhs.val64_ << " " << rhs.val32_ << " " << std::endl
       ;
 
 
@@ -35,17 +35,17 @@ public:
 
 TEST(TestFlexbin, SimpleInOutEquality)
 {
-  test_data::test_struct a { 10^5, 1, { "first"}};
-  test_data::test_struct b { 0, 1, { "second"}};
+  test_data::test_struct a { 10^5, 1};
+  test_data::test_struct b { 0, 1};
 
-  std::filebuf fbuf;
+/*  std::filebuf fbuf;
   fbuf.open("/tmp/inout",std::ios_base::in | std::ios_base::out);
   flexbin::istream fbin(&fbuf);
   flexbin::ostream fbout(&fbuf);
 
   fbin >> a;
   fbout << b;
-
+*/
   ASSERT_EQ(a, b);
 
 }
