@@ -6,14 +6,6 @@
 
 #include "gtest/gtest.h"
 
-class TestFlexbin : public ::testing::Test {
-public:
-    TestFlexbin() { /* init protected members here */ }
-    ~TestFlexbin() { /* free protected members here */ }
-    void SetUp() { /* called before every test */ }
-    void TearDown() { /* called after every test */ }
-};
-
 template<typename T>
 inline void serialize_and_compare(const T& l, T& r) {
   auto object_size = flexbin::class_object_size(l);
@@ -173,20 +165,3 @@ TEST(TestFlexbin, FundamentalSimplified)
   test_fundamental_type_required_field<TestDataOneFieldSimplified<int16_t>>();
   test_fundamental_type_required_field<TestDataOneFieldSimplified<int8_t>>();
 }
-
-int main(int argc, char** argv)
-{
-  std::cout << "uint64_t code: " <<  typeid(uint64_t(0)).name() << std::endl;
-  std::cout << "uint32_t code: " <<  typeid(uint32_t(0)).name() << std::endl;
-  std::cout << "uint16_t code: " <<  typeid(uint16_t(0)).name() << std::endl;
-  std::cout << "uint8_t code: " <<  typeid(uint8_t(0)).name() << std::endl;
-  std::cout << "int64_t code: " <<  typeid(int64_t(0)).name() << std::endl;
-  std::cout << "int32_t code: " <<  typeid(int32_t(0)).name() << std::endl;
-  std::cout << "int16_t code: " <<  typeid(int16_t(0)).name() << std::endl;
-  std::cout << "int8_t code: " <<  typeid(int8_t(0)).name() << std::endl;
-
-   ::testing::InitGoogleTest(&argc, argv);
-   return RUN_ALL_TESTS();
-}
-
-

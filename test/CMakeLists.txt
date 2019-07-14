@@ -6,7 +6,11 @@ set (CMAKE_CXX_STANDARD 17)
 set (PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/../include)
 
 add_subdirectory(googletest)
-add_executable(flexbin_test flexbin_test.cpp)
+add_executable(flexbin_test 
+  main.cpp 
+  test_fundamentals.cpp
+  test_substructure.cpp
+)
 add_dependencies(flexbin_test gtest)
 
 include_directories(${CMAKE_SOURCE_DIR}/test/googletest/googletest/include)
