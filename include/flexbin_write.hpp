@@ -96,7 +96,6 @@ namespace flexbin
     }
 
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
-      //return type_traits<T>::pack(ostr, value);
       FLEXBIN_DEBUG_LOG("pack fundamental type " << (int)type_traits<T>::code_ << " field_id" << (int) field_id << " value " << (int)value)
       return pack_value(ostr, value, field_id);
     }
