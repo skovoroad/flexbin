@@ -1,25 +1,17 @@
 #include "gtest/gtest.h"
-#include "flexbin.hpp"
+#include "test_object.h"
+
 
 template<typename T>
 inline void serialize_and_compare(const T& l, T& r) {
-  auto object_size = flexbin::class_object_size(l);
-  std::vector<char> buffer;
-  buffer.resize(object_size);
-
-  flexbin::istream fbin(buffer.data(), buffer.size());
-  flexbin::ostream fbout(buffer.data(), buffer.size());
-
-  fbout << l;
-
-  uint16_t classid(0);
-  auto result = flexbin::class_id(buffer.data(), buffer.size(), classid);
-  ASSERT_TRUE(result);
-  ASSERT_EQ (T::flexbin_class_id, classid);
-
-  fbin >> r;
+  auto result = fbtest::serialize_and_return_classid(l, r);
+  uint16_t classid = std::get<fbtest::result_class_id>(result);
+  
+  ASSERT_TRUE(std::get<fbtest::result_fbout_good>(result));
+  ASSERT_TRUE(std::get<fbtest::result_fbin_good>(result));
+  ASSERT_TRUE(std::get<fbtest::result_class_id>(result));
+  ASSERT_EQ (static_cast<uint16_t>(T::flexbin_class_id), classid);
   ASSERT_EQ(l, r) << " " << typeid(l).name()  ;
-  ;
 };
 
 TEST(TestFlexbin, SubstructRequired)
@@ -36,7 +28,6 @@ TEST(TestFlexbin, SubstructRequired)
 
     FLEXBIN_CLASS_ID(1);
     FLEXBIN_SERIALIZE_REQUIRED(a_, b_);
-
 
     bool operator==(const A &r) const { 
       return a_ == r.a_ && b_.c_  == r.b_.c_; 

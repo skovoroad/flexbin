@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <cstring>
+#include <memory>
 #include "flexbin_buffer.hpp"
 
 namespace flexbin 
@@ -14,6 +15,12 @@ namespace flexbin
     }
 
     template<typename T> std::basic_istream<char>& operator>> (T&);
+    template<typename T> std::basic_istream<char>& operator>> (std::shared_ptr<T>& obj){
+      return istream::operator>> (*obj);
+    }
+    template<typename T> std::basic_istream<char>& operator>> (std::unique_ptr<T>& obj){
+      return istream::operator>> (*obj);
+    }
   private:
     flexbin::memmap_buffer mem_buf_;
   };
@@ -31,6 +38,12 @@ namespace flexbin
     }
 
     template<typename T> std::basic_ostream<char>& operator<< (const T& obj);
+    template<typename T> std::basic_ostream<char>& operator<< (const std::shared_ptr<T>& obj){
+      return ostream::operator<<(*obj);
+    }
+    template<typename T> std::basic_ostream<char>& operator<< (const std::unique_ptr<T>& obj){
+      return ostream::operator<<(*obj);
+    }
     
     basic_ostream& write(const base::char_type* data, std::streamsize nbytes) {
       if (!count_mode_)
