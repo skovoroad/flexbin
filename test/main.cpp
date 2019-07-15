@@ -2,7 +2,6 @@
 
 int main(int argc, char** argv)
 {
-//  string, stirngview, vector, substruct, enum, shared_ptr, unique_ptr
       std::cout << "uint64_t code: " <<  typeid(uint64_t(0)).name() << std::endl;
       std::cout << "uint32_t code: " <<  typeid(uint32_t(0)).name() << std::endl;
       std::cout << "uint16_t code: " <<  typeid(uint16_t(0)).name() << std::endl;
