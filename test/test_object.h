@@ -47,12 +47,8 @@ namespace fbtest {
 
     uint16_t classid(0);
     auto result = flexbin::class_id(buffer.data(), buffer.size(), classid);
-    //ASSERT_TRUE(result);
     fbin >> r;
 
     return result_t(fbout.good(), fbin.good(), result, classid);
-    //  ASSERT_EQ (T::flexbin_class_id, classid);  
-    //  ASSERT_EQ(l, r) << " " << typeid(l).name()  ;
-    ;
   };
 }

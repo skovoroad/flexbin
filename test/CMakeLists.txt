@@ -10,6 +10,7 @@ add_executable(flexbin_test
   main.cpp 
   test_fundamentals.cpp
   test_substructure.cpp
+  test_containers.cpp
   test_ptr.cpp
 )
 add_dependencies(flexbin_test gtest)
