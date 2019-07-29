@@ -117,7 +117,7 @@ namespace test_data
   }
 }
 
-int main(int argc, char** argv)
+int run()
 {
   test_data::test_struct a{ 1000, 1, 7, 77,  "third", 
    { "first", false} ,  
@@ -174,8 +174,6 @@ int main(int argc, char** argv)
 
   std::cout << "Buffer: ";
   std::ios_base::fmtflags f(std::cout.flags());
-  //for (size_t i = 0; i < fbuf.str().size(); ++i)
-    //std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char) fbuf.str()[i] << " ";
   for (size_t i = 0; i < bufsize; ++i)
     std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char)mem[i] << " ";
   std::cout << std::endl;
@@ -183,8 +181,6 @@ int main(int argc, char** argv)
 
 
   uint16_t classid(0);
-  //std::string str = fbuf.str();
-  //if (!flexbin::class_id(str.data(), str.size(), classid))
   if (!flexbin::class_id(mem, bufsize, classid))
   {
     std::cerr << "error getting classid" << std::endl;
@@ -195,16 +191,11 @@ int main(int argc, char** argv)
       std::cerr << "bad class id detected: " << classid << std::endl;
   }
 
-  //  if(str.size() != b_size)
-  //    std::cerr << "Bad b size! real size: " << str.size() << std::endl;
-
-    //fbout.flush();
   a.reset();
 
   fbin >> a;
   if (!fbin) {
     std::cerr << "istr error" << std::endl;
-    //    return 0;
   }
 
 
@@ -217,16 +208,159 @@ int main(int argc, char** argv)
   std::cout << std::endl;
 
   std::cout << (a == b) << std::endl;
+  return 0;
 }
 
+namespace flexbin_experimental {
+  namespace type_code {
+    template<typename T> uint8_t get() {return 29;}
+    template<> uint8_t get<uint64_t>() {return 16;}
+    template<> uint8_t get<uint8_t>()  {return 2;}
+  }
+  
+  template<typename T, class Enabler = void>
+  struct type_traits
+  {
+    enum { code_ = 29 /* "object" field id */ };
+  };  
+
+  using ostream = flexbin::ostream;
+  using istream = flexbin::istream;
+
+  template<typename T>
+  size_t write_field_header(ostream& ostr, uint8_t field_id) {
+      uint8_t code = type_traits<T>::code_;
+      auto nbytes = sizeof(T) + 2;
+      ostr.write(reinterpret_cast<const char*>(&code), 1);
+      ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      return nbytes;
+  }
+
+  template <typename... Args>
+  struct type_packer;
+
+  template<typename T, typename TCandidate, typename... Rest>
+  struct type_packer<T, TCandidate, Rest...>
+  {
+    inline static size_t pack(ostream& ostr, uint8_t field_id, const T& val ) {
+      auto candidate = static_cast<TCandidate>(val);
+      if(candidate == val) {
+        return write_field_header<TCandidate>(ostr, field_id) +
+               type_traits<TCandidate>::write(ostr, val);
+      }
+
+      return type_packer<T, Rest...>::pack(ostr, field_id, val); 
+     }
+
+  };
+
+  template<typename T, typename TCandidate>
+  struct type_packer<T, TCandidate>
+  {
+    inline static size_t pack(ostream& ostr, uint8_t field_id, const T& val ) {
+      auto candidate = static_cast<TCandidate>(val);
+      if(candidate == val) {
+        return write_field_header<TCandidate>(ostr, field_id) +
+               type_traits<TCandidate>::write(ostr, val);
+      }
+
+        return write_field_header<T>(ostr, field_id) +
+               type_traits<T>::write(ostr, val);
+     }
+  };
+
+
+  template<typename T>
+  struct type_packer<T>
+  {
+    inline static size_t pack(ostream& ostr, uint8_t field_id, const T& val ) {
+      return write_field_header<T>(ostr, field_id) +
+               type_traits<T>::write(ostr, val);
+     }
+  };
+
+  template<typename T>
+  struct type_writer
+  {
+    inline static size_t write(ostream& ostr, const T& val ) {
+      ostr.write(reinterpret_cast<const char*>(&val), sizeof(T));
+      return sizeof(uint8_t); 
+     }
+
+    inline static bool read(istream& istr, T& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(T));
+      return istr.good();
+    }
+
+  };
+  ///////////
+  template<>
+  struct type_traits<uint8_t> : 
+    public type_writer<uint8_t>,
+           type_packer<uint8_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 2 };
+  };
+
+  template<>
+  struct type_traits<uint32_t> : 
+    public type_writer<uint32_t>,
+           type_packer<uint32_t, uint8_t> // base class first, candidates next
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 8 };
+  };
+
+  template<>
+  struct type_traits<uint64_t> : 
+    public type_writer<uint64_t>,
+           type_packer<uint64_t, uint8_t, uint32_t>// base class first, candidates next
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 17 };
+  };
+}
+
+void test_new_write()
+{
+  constexpr size_t bufsize = 256;
+  char mem[bufsize];
+  std::fill(mem, mem+bufsize, 0);
+
+  flexbin_experimental::istream fbin(mem, bufsize);
+  flexbin_experimental::ostream fbout(mem, bufsize);
+
+  uint64_t value_1 = 7;
+  uint64_t value_2 = 777777;
+  flexbin_experimental::type_traits<uint64_t>::pack(fbout, 123, value_1);
+  flexbin_experimental::type_traits<uint64_t>::pack(fbout, 77, value_2);
+
+  flexbin_experimental::type_traits<uint64_t>::write(fbout, value_1);
+  flexbin_experimental::type_traits<uint64_t>::write(fbout, value_2);
+
+  std::cout << "Buffer: ";
+  std::ios_base::fmtflags f(std::cout.flags());
+  for (size_t i = 0; i < bufsize; ++i)
+    std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char)mem[i] << " ";
+  std::cout << std::endl;
+  std::cout.flags(f);  
+}
+
+int main(int argc, char** argv)
+{
+ // run();
+  test_new_write();
+  return 0; 
+}
   // todo:
-// 0  shared_ptr, vector - make write/read functions (for fixed fields)
+  // 0  shared_ptr, vector - make write/read functions (for fixed fields)
   // + 1. compact value representation
   // + 2. flexbin fields encoding
   // + 3. required, fixed, optional, simplified
   // + 4. flexstring
   // 5. all types support
-  // 6. tests
+  // + 6. tests
   // + 7. write complex object ?
   // + 8. reading...
   // + 10. memalloc_buffer for streams, 
