@@ -20,4 +20,7 @@ include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")
 
 add_subdirectory(example)
-add_subdirectory(test)
+
+if(DEFINED FLEXBIB_ENABLE_TEST)
+  add_subdirectory(test)
+endif()

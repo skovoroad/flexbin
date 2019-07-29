@@ -139,6 +139,34 @@ namespace flexbin
   };
 
   template <typename T>
+  struct field_reader< std::unordered_set<T> > {
+
+    static bool read(istream& istr, std::unordered_set < T>& value) {
+      FLEXBIN_DEBUG_LOG("ERROR attempt to read unordered_set")
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, std::unordered_set < T>& value) {
+      size_t len = 0;
+      if (!type_traits<size_t>::read(istr, len))
+        return false;
+      auto elem_type = type_traits<T>::code_;
+      FLEXBIN_DEBUG_LOG("|unpack unordered_set, size " << len << " elem_type " << elem_type)
+        while (len-- > 0) {
+          T val;
+          if (!field_reader<T>::unpack_value(istr, elem_type, val)) {
+            FLEXBIN_DEBUG_LOG("ERROR unpack read next vector element")
+              return false;
+          }
+          value.insert(val);
+        }
+      FLEXBIN_DEBUG_LOG("|unpack unordered_set end, size " << len << " elem_type " << elem_type << " actual size " << value.size())
+        return istr.good();
+    }
+
+  };
+
+
+  template <typename T>
   struct field_reader< std::unique_ptr<T> > {
 
     static bool read(istream& istr, std::unique_ptr<T>& value) {

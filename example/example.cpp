@@ -8,24 +8,42 @@
 
 namespace test_data
 {
-  class special_string: public std::string {
+  class special_string : public std::string {
   public:
   };
 
   struct test_substruct
   {
     test_substruct() {}
-    test_substruct(const char * s, bool b) 
-    : strval_(s), boolean_(b) {}
+    test_substruct(const char * s, bool b)
+      : strval_(s), boolean_(b) {}
 
     std::string strval_;
-    bool boolean_;    
+    bool boolean_;
 
     FLEXBIN_CLASS_ID(666);
 
     FLEXBIN_SERIALIZE_REQUIRED(strval_, boolean_)
   };
+} // namespacfe
 
+namespace std {
+  template<>
+  struct hash<test_data::test_substruct> {
+    size_t operator()(const test_data::test_substruct &s) const {
+      return hash<string>()(s.strval_) << (s.boolean_ ? 1 : 0);
+    }
+  };
+
+  template<>
+  struct equal_to<test_data::test_substruct> {
+    bool operator()(const test_data::test_substruct &l, const test_data::test_substruct &r) const {
+      return l.strval_ == r.strval_ && l.boolean_ == r.boolean_;
+    }
+  };
+}
+
+namespace test_data {
   struct test_struct
   {
     uint64_t val64_;
@@ -35,8 +53,8 @@ namespace test_data
     special_string strval_;
     test_substruct ss_;
     std::unique_ptr<test_substruct> ss2_;
-    std::vector<uint64_t> vect_;
-    std::vector<test_substruct> vect2_;
+    std::unordered_set<uint64_t> vect_;
+    std::unordered_set<test_substruct> vect2_;
     bool boolean_;
 
     enum SomeEnum { SomeOne, SomeTwo, SomeThree};
@@ -45,9 +63,7 @@ namespace test_data
     FLEXBIN_CLASS_ID(777);
 
     FLEXBIN_SERIALIZE_FIXED(val32_)
-    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_ , ss2_, strval_, vect_, vect2_, boolean_
-      , enum_
-      )
+    FLEXBIN_SERIALIZE_REQUIRED(val64_, ss_, ss2_, strval_, vect_, vect2_, boolean_, enum_)
     FLEXBIN_SERIALIZE_OPTIONAL(val8_)
     FLEXBIN_SERIALIZE_SIMPLIFIED(val32_2_)
     
@@ -349,8 +365,8 @@ void test_new_write()
 
 int main(int argc, char** argv)
 {
- // run();
-  test_new_write();
+  run();
+ // test_new_write();
   return 0; 
 }
   // todo:

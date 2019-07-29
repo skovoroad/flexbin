@@ -138,6 +138,27 @@ namespace flexbin
   };
 
   template <typename T>
+  struct field_writer< std::unordered_set<T> > {
+    static size_t write(ostream& ostr, const std::unordered_set<T> & value) {
+      size_t size = value.size();
+      ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
+      FLEXBIN_DEBUG_LOG("|write unordered_set field: size" << size << " type: " << type_traits<T>::code_)
+        for (const auto & v : value)
+          field_writer<T>::write(ostr, v);
+      FLEXBIN_DEBUG_LOG("|write unordered_set ")
+        return size + sizeof(size_t);
+    }
+
+    static size_t pack(ostream& ostr, uint8_t field_id, const std::unordered_set<T>& value) {
+      uint8_t code = type_traits<std::unordered_set<T>>::code_;
+      ostr.write(reinterpret_cast<const char*>(&code), 1);
+      ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      return write(ostr, value);
+    }
+  };
+
+
+  template <typename T>
   struct field_writer< std::unique_ptr<T> > {
     static size_t write(ostream& ostr, const std::unique_ptr<T> & value) {      
       FLEXBIN_DEBUG_LOG("write unique_ptr field: type: " << type_traits<T>::code_)

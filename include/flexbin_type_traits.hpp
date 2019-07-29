@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <unordered_set>
 #include "flexbin_streams.hpp"
 
 namespace flexbin
@@ -38,7 +39,13 @@ namespace flexbin
   template<typename T>
   struct type_traits<std::vector<T>>
   {
-    enum { code_ = 25};
+    enum { code_ = 25 };
+  };
+
+  template<typename T>
+  struct type_traits<std::unordered_set<T>>
+  {
+    enum { code_ = 25 };
   };
 
 
