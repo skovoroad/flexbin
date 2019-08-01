@@ -18,7 +18,7 @@ namespace flexbin
     template<typename T> std::basic_istream<char>& operator>> (std::shared_ptr<T>& obj){
       return istream::operator>> (*obj);
     }
-    template<typename T> std::basic_istream<char>& operator>> (std::unique_ptr<T>& obj){
+    template<typename T, typename TDeleter> std::basic_istream<char>& operator>> (std::unique_ptr<T, TDeleter>& obj){
       return istream::operator>> (*obj);
     }
   private:
@@ -41,7 +41,7 @@ namespace flexbin
     template<typename T> std::basic_ostream<char>& operator<< (const std::shared_ptr<T>& obj){
       return ostream::operator<<(*obj);
     }
-    template<typename T> std::basic_ostream<char>& operator<< (const std::unique_ptr<T>& obj){
+    template<typename T, typename TDeleter> std::basic_ostream<char>& operator<< (const std::unique_ptr<T, TDeleter>& obj){
       return ostream::operator<<(*obj);
     }
     
