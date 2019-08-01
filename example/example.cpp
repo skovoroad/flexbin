@@ -98,22 +98,40 @@ namespace test_data {
 
   };
 
+  struct test_substruct2 {
+    bool boolean_ = false;
 
-    struct test_struct2{
-      bool boolean_ = false;
+    FLEXBIN_CLASS_ID(887);
+    FLEXBIN_SERIALIZE_REQUIRED(boolean_)
 
-      FLEXBIN_CLASS_ID(888);
-      FLEXBIN_SERIALIZE_REQUIRED(boolean_)
+  };
 
-      void dump() {
-        std::cout << " " << boolean_ ;
-      };
-      void reset() {};
+  class test_substruct2_deleter {
+  public:
+    void operator( )(test_substruct2* ptr) const {
+      delete ptr;
+    }
+  };
 
-      bool operator==(const test_struct2& rhs) {
-        return boolean_ == rhs.boolean_;
-      }
+  struct test_struct2{
+    std::unique_ptr<test_substruct2, test_substruct2_deleter> s_;
+
+    test_struct2(bool val) {
+      s_.reset(new test_substruct2{val});
+    }
+
+    FLEXBIN_CLASS_ID(888);
+    FLEXBIN_SERIALIZE_REQUIRED(s_)
+
+    void dump() {
+      std::cout << " " << s_->boolean_;
     };
+    void reset() {};
+
+    bool operator==(const test_struct2& rhs) {
+      return s_->boolean_ == rhs.s_->boolean_;
+    }
+  };
 
   inline bool operator==(const test_struct& lhs, const test_struct& rhs)
   {
@@ -135,6 +153,7 @@ namespace test_data {
 
 int run()
 {
+  /*
   test_data::test_struct a{ 1000, 1, 7, 77,  "third", 
    { "first", false} ,  
    std::make_unique<test_data::test_substruct>("substr shared", true),
@@ -150,9 +169,10 @@ int run()
    { {"3 s u b s t r u c t", true}, {" 4 s u b s t r u c t", true}}, false ,
    test_data::test_struct::SomeTwo 
   };
+  */
 
-  //test_data::test_struct2 a {true};
-  //test_data::test_struct2 b {false};
+  test_data::test_struct2 a (true);
+  test_data::test_struct2 b (false);
 
   std::cout << "A: ";
   a.dump();

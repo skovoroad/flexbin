@@ -158,14 +158,14 @@ namespace flexbin
   };
 
 
-  template <typename T>
-  struct field_writer< std::unique_ptr<T> > {
-    static size_t write(ostream& ostr, const std::unique_ptr<T> & value) {      
+  template <typename T, typename TDeleter>
+  struct field_writer< std::unique_ptr<T, TDeleter> > {
+    static size_t write(ostream& ostr, const std::unique_ptr<T, TDeleter> & value) {
       FLEXBIN_DEBUG_LOG("write unique_ptr field: type: " << type_traits<T>::code_)
       return field_writer<T>::write(ostr, *value);
     }
 
-    static size_t pack(ostream& ostr, uint8_t field_id, const std::unique_ptr<T>& value) {
+    static size_t pack(ostream& ostr, uint8_t field_id, const std::unique_ptr<T, TDeleter>& value) {
       FLEXBIN_DEBUG_LOG("pack unique_ptr field: field id " << (int)field_id << " type: " << type_traits<T>::code_)
       return field_writer<T>::pack(ostr, field_id, *value);
     }

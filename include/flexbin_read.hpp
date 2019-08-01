@@ -166,17 +166,18 @@ namespace flexbin
   };
 
 
-  template <typename T>
-  struct field_reader< std::unique_ptr<T> > {
+  template <typename T, typename TDeleter >
+  struct field_reader< std::unique_ptr<T, TDeleter> > {
 
-    static bool read(istream& istr, std::unique_ptr<T>& value) {
+    static bool read(istream& istr, std::unique_ptr<T, TDeleter>& value) {
       FLEXBIN_DEBUG_LOG("read unique_ptr filed " << " type: " << type_traits<T>::code_)
       return field_reader<T>::read(istr, *value);
     }
 
-    static bool unpack_value(istream& istr, uint8_t type, std::unique_ptr<T>& value) {
+    static bool unpack_value(istream& istr, uint8_t type, std::unique_ptr<T, TDeleter>& value) {
       if (!value)
-        value = std::make_unique<T>();
+        return false; // TODO: wtf? we need way to create it here
+        //value = std::make_unique<T>();
       bool retval = field_reader<T>::unpack_value(istr, type, *value);
       FLEXBIN_DEBUG_LOG("unpack_value unique_ptr: type " << (int)type << " retval " << retval << " type: " << type_traits<T>::code_)
         return retval;
