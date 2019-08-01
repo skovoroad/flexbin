@@ -384,10 +384,28 @@ void test_new_write()
   std::cout.flags(f);  
 }
 
+void test_buffered_stringview()
+{
+  std::string text("lalala lululu");
+  std::string buffer(text);
+
+  flexbin::buffered_string_view bsv = buffer;
+  bsv.bufferize();
+
+  buffer = "something completely different";
+  if (bsv != text)
+    std::cerr << "ERROR: bsv = \"" << bsv << "\", text=\"" << text << "\"" << std::endl;
+  else
+    std::cout << "stringview test passed" << std::endl;
+}
+
+
+
 int main(int argc, char** argv)
 {
-  run();
+//  run();
  // test_new_write();
+  test_buffered_stringview();
   return 0; 
 }
   // todo:

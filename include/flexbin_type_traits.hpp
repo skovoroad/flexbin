@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_set>
 #include "flexbin_streams.hpp"
+#include "flexbin_stringview.hpp"
 
 namespace flexbin
 {
