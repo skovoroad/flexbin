@@ -43,7 +43,7 @@ TEST(TestFlexbin, Vector)
 //    FLEXBIN_SERIALIZE_SIMPLIFIED(d_);
 
     bool operator==(const Vectors &r) const { 
-      return a_ == r.a_ && 
+      return a_ == r.a_  && 
              b_  == r.b_ //&&
              //c_  == r.c_ &&
              //d_  == r.d_

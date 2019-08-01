@@ -17,9 +17,22 @@ add_executable(flexbin_test
 add_dependencies(flexbin_test gtest)
 
 include_directories(${CMAKE_SOURCE_DIR}/test/googletest/googletest/include)
-target_link_libraries(flexbin_test ${CMAKE_BINARY_DIR}/libgtest.a)
-target_link_libraries(flexbin_test -pthread)
+
+if (MSVC)
+  set(CMAKE_CXX_FLAGS "/D_HAS_TR1_NAMESPACE /D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING" CACHE INTERNAL "")
+endif()
+
+if (WIN32)
+  target_link_libraries(flexbin_test ${CMAKE_BINARY_DIR}/Debug/gtest.lib)
+#  target_link_libraries(flexbin_test ${GTEST_LIB})
+else()
+  target_link_libraries(flexbin_test ${CMAKE_BINARY_DIR}/libgtest.a)
+  target_link_libraries(flexbin_test -pthread)
+endif()
 
 enable_testing()
 add_test(NAME    flexbin_test
          COMMAND flexbin_test)
+
+set_property(TARGET flexbin_test PROPERTY
+  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
