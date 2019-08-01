@@ -274,35 +274,35 @@ namespace flexbin
   };
 
 
-  template<>
-  struct type_traits<std::string>
+  template<typename T>
+  struct type_traits<std::basic_string<T>>
   {
     enum { code_ = 21 };
     enum { default_value_ = 0 };
 
-    inline static size_t write(ostream& ostr, const std::string& str) {
+    inline static size_t write(ostream& ostr, const std::basic_string<T>& str) {
       size_t len = str.size();
       type_traits<size_t>::write(ostr, len);
-      ostr.write(str.data(), len);
-      //ostr << str;
+      ostr.write(reinterpret_cast<const char*>(str.data()), len * sizeof(T));
+
       return len + sizeof(size_t); 
     }
 
-    inline static bool read(istream& istr, std::string& val) {
+    inline static bool read(istream& istr, std::basic_string<T>& val) {
       size_t len = 0;
       if (!type_traits<size_t >::read(istr, len)) {
         // ...
         return false;
       }
       val.resize(len);
-      istr.read(val.data(), len);
+      istr.read(reinterpret_cast<char*>(val.data()), len * sizeof(T));
 
       return istr.good();
     }
 
-    inline static auto candidates(const std::string value) {
+    inline static auto candidates(const std::basic_string<T>& value) {
       return std::make_tuple(
-        static_cast<std::string>(value)
+        static_cast<std::basic_string<T>>(value)
       );
     }
   };

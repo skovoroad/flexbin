@@ -70,6 +70,7 @@ namespace flexbin
     }
   };
 
+  /*
   template <typename T>
   //struct field_writer<std::string, void> 
   struct field_writer<T, std::enable_if_t<std::is_base_of<std::string, T>::value> > {
@@ -86,6 +87,25 @@ namespace flexbin
       return type_traits<std::string>::write(ostr, value) + 2;
     }
   };
+  */
+
+  template <typename T>
+  struct field_writer<std::basic_string<T>> {
+  //struct field_writer<T, std::enable_if_t<std::is_base_of<std::string, T>::value> > {
+    static size_t write(ostream& ostr, const std::basic_string<T>& value) {
+      FLEXBIN_DEBUG_LOG("write basic_string field:  value " << value)
+      return type_traits<std::basic_string<T>>::write(ostr, value);
+    }
+
+    static size_t pack(ostream& ostr, uint8_t field_id, const std::basic_string<T>& value) {
+      uint8_t code = type_traits<std::string>::code_;
+      ostr.write(reinterpret_cast<const char*>(&code), 1);
+      ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      FLEXBIN_DEBUG_LOG("pack basic_string field: field_id " << (int)field_id << " value ")
+      return type_traits<std::basic_string<T>>::write(ostr, value) + 2;
+    }
+  };
+
 
   template <typename T>
   struct field_writer<T, std::enable_if_t<std::is_fundamental<T>::value> > { 
@@ -115,7 +135,6 @@ namespace flexbin
       return pack_value(ostr, value, field_id);
     }
   };
-
 
   template <typename T>
   struct field_writer< std::vector<T> > {

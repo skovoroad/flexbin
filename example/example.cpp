@@ -114,22 +114,23 @@ namespace test_data {
   };
 
   struct test_struct2{
-    std::unique_ptr<test_substruct2, test_substruct2_deleter> s_;
+    //std::unique_ptr<test_substruct2, test_substruct2_deleter> s_;
+    std::basic_string<uint8_t> s_;
 
-    test_struct2(bool val) {
-      s_.reset(new test_substruct2{val});
+    test_struct2(int val) {
+      s_.push_back(val);
     }
 
     FLEXBIN_CLASS_ID(888);
     FLEXBIN_SERIALIZE_REQUIRED(s_)
 
     void dump() {
-      std::cout << " " << s_->boolean_;
+      std::cout << " " << s_[0];
     };
     void reset() {};
 
     bool operator==(const test_struct2& rhs) {
-      return s_->boolean_ == rhs.s_->boolean_;
+      return s_ == rhs.s_;
     }
   };
 
@@ -171,8 +172,8 @@ int run()
   };
   */
 
-  test_data::test_struct2 a (true);
-  test_data::test_struct2 b (false);
+  test_data::test_struct2 a (33);
+  test_data::test_struct2 b (444);
 
   std::cout << "A: ";
   a.dump();

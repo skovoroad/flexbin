@@ -62,7 +62,7 @@ namespace flexbin
     }
 
   };
-
+  /*
   template <typename T>
   struct field_reader<T, std::enable_if_t<std::is_base_of<std::string, T>::value> > {    
     static bool read(istream& istr, std::string& value) {
@@ -76,6 +76,22 @@ namespace flexbin
       auto retval = type_traits<std::string>::read(istr, value);
       FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type_traits<T>::code_ << " value " << value)
       return istr.good(); 
+    }
+  };
+  */
+  template <typename T>
+  struct field_reader<std::basic_string<T>> {
+    static bool read(istream& istr, std::basic_string<T>& value) {
+
+      auto retval = type_traits<std::basic_string<T>>::read(istr, value);
+      FLEXBIN_DEBUG_LOG("read string, type " << (int)type_traits<std::basic_string<T>>::code_ << " retval " << retval)
+        return retval;
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, std::basic_string<T>& value) {
+      auto retval = type_traits<std::basic_string<T>>::read(istr, value);
+      FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type_traits<T>::code_ )
+        return istr.good();
     }
   };
 
