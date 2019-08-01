@@ -62,36 +62,36 @@ namespace flexbin
     }
 
   };
-  /*
+  
   template <typename T>
-  struct field_reader<T, std::enable_if_t<std::is_base_of<std::string, T>::value> > {    
-    static bool read(istream& istr, std::string& value) {
-        
-      auto retval = type_traits<std::string>::read(istr, value);
-      FLEXBIN_DEBUG_LOG("read string, type " << (int)type_traits<T>::code_ << " value " << value << " retval " << retval)
+  struct field_reader<flexbin::basic_buffered_stringview<T> > {
+    static bool read(istream& istr, flexbin::basic_buffered_stringview<T>& value) {
+
+      auto retval = type_traits<flexbin::basic_buffered_stringview<T>>::read(istr, value);
+      FLEXBIN_DEBUG_LOG("read buffered_string_view, type " << (int)type_traits<flexbin::basic_buffered_stringview<T>>::code_ << " retval " << retval)
       return retval;
     }
 
-    static bool unpack_value(istream& istr, uint8_t type, std::string& value) {
-      auto retval = type_traits<std::string>::read(istr, value);
-      FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type_traits<T>::code_ << " value " << value)
-      return istr.good(); 
+    static bool unpack_value(istream& istr, uint8_t type, flexbin::basic_buffered_stringview<T>& value) {
+      auto retval = type_traits<flexbin::basic_buffered_stringview<T>>::read(istr, value);
+      FLEXBIN_DEBUG_LOG("unpack_value buffered_string_view, type " << (int)type_traits<T>::code_)
+      return istr.good();
     }
   };
-  */
+
   template <typename T>
   struct field_reader<std::basic_string<T>> {
     static bool read(istream& istr, std::basic_string<T>& value) {
 
       auto retval = type_traits<std::basic_string<T>>::read(istr, value);
       FLEXBIN_DEBUG_LOG("read string, type " << (int)type_traits<std::basic_string<T>>::code_ << " retval " << retval)
-        return retval;
+      return retval;
     }
 
     static bool unpack_value(istream& istr, uint8_t type, std::basic_string<T>& value) {
       auto retval = type_traits<std::basic_string<T>>::read(istr, value);
-      FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type_traits<T>::code_ )
-        return istr.good();
+      FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type_traits<T>::code_)
+      return istr.good();
     }
   };
 
