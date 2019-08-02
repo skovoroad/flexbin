@@ -38,8 +38,10 @@ namespace flexbin {
     void bufferize() {
 #ifdef FLEXBIN_USE_BOOST
       buffer_.assign(data(), size());
-#endif
+#else
       buffer_ = *this;
+#endif
+
       *this = buffer_;
     }
 
