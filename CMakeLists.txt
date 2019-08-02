@@ -21,6 +21,6 @@ include_directories("${PROJECT_SOURCE_DIR}")
 
 add_subdirectory(example)
 
-if(DEFINED FLEXBIB_ENABLE_TEST)
+if(DEFINED FLEXBIN_ENABLE_TEST)
   add_subdirectory(test)
 endif()
