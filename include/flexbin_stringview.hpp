@@ -1,13 +1,26 @@
 #pragma once
 #include <string_view>
 
+//#define FLEXBIN_USE_BOOST
+
+#ifdef FLEXBIN_USE_BOOST
+#include <boost/utility/string_view.hpp>
+
+namespace sv = boost;
+#else
+namespace sv = std;
+#endif
 
 namespace flexbin {
 
   template<typename TElem>
-  class basic_buffered_stringview : public std::basic_string_view<TElem> {
+  class basic_buffered_stringview : public sv::basic_string_view<TElem> {
   public:
-    typedef std::basic_string_view<TElem> base;
+    typedef sv::basic_string_view<TElem> base;
+
+    basic_buffered_stringview<TElem>()
+      : base() {}
+
 
     basic_buffered_stringview<TElem>(const basic_string_view<TElem>& r)
       : base(r) {}
@@ -23,12 +36,17 @@ namespace flexbin {
       : base(p, count) {}
 
     void bufferize() {
+#ifdef FLEXBIN_USE_BOOST
+      buffer_.assign(data(), size());
+#endif
       buffer_ = *this;
       *this = buffer_;
     }
 
+    const char * begin() const { return data();  }
+
   private:
-    std::string buffer_;
+    std::basic_string<TElem> buffer_;
   };
 
   typedef basic_buffered_stringview<char> buffered_string_view;
