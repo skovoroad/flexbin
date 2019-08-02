@@ -309,12 +309,12 @@ namespace flexbin
   };
 
   template<typename T>
-  struct type_traits<std::basic_string_view<T>>
+  struct type_traits<basic_buffered_stringview<T>>
   {
     enum { code_ = 21 };
     enum { default_value_ = 0 };
 
-    inline static size_t write(ostream& ostr, const std::basic_string_view<T>& str) {
+    inline static size_t write(ostream& ostr, const basic_buffered_stringview<T>& str) {
       size_t len = str.size();
       type_traits<size_t>::write(ostr, len);
       ostr.write(reinterpret_cast<const char*>(str.data()), len * sizeof(T));
@@ -322,7 +322,7 @@ namespace flexbin
       return len + sizeof(size_t);
     }
 
-    inline static bool read(istream& istr, std::basic_string_view<T>& val) {
+    inline static bool read(istream& istr, basic_buffered_stringview<T>& str) {
       size_t len = 0;
       if (!type_traits<size_t >::read(istr, len)) {
         // ...
@@ -339,9 +339,9 @@ namespace flexbin
       return istr.good();
     }
 
-    inline static auto candidates(const std::basic_string<T>& value) {
+    inline static auto candidates(const basic_buffered_stringview<T>& value) {
       return std::make_tuple(
-        static_cast<std::basic_string<T>>(value)
+        static_cast<basic_buffered_stringview<T>>(value)
       );
     }
   };
