@@ -50,7 +50,7 @@ namespace test_data {
     uint32_t val32_;
     uint32_t val32_2_;
     uint8_t  val8_;
-    special_string strval_;
+    std::string strval_;
     test_substruct ss_;
     std::unique_ptr<test_substruct> ss2_;
     std::unordered_set<uint64_t> vect_;
@@ -154,7 +154,7 @@ namespace test_data {
 
 int run()
 {
-  /*
+  
   test_data::test_struct a{ 1000, 1, 7, 77,  "third", 
    { "first", false} ,  
    std::make_unique<test_data::test_substruct>("substr shared", true),
@@ -170,11 +170,13 @@ int run()
    { {"3 s u b s t r u c t", true}, {" 4 s u b s t r u c t", true}}, false ,
    test_data::test_struct::SomeTwo 
   };
-  */
+  
+
+  /*
 
   test_data::test_struct2 a (33);
   test_data::test_struct2 b (444);
-
+*/
   std::cout << "A: ";
   a.dump();
   std::cout << std::endl;
@@ -403,9 +405,9 @@ void test_buffered_stringview()
 
 int main(int argc, char** argv)
 {
-//  run();
+  run();
  // test_new_write();
-  test_buffered_stringview();
+//  test_buffered_stringview();
   return 0; 
 }
   // todo:

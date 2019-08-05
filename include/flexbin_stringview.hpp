@@ -22,10 +22,17 @@ namespace flexbin {
       : base() {}
 
 
-    basic_buffered_stringview<TElem>(const basic_string_view<TElem>& r)
+    basic_buffered_stringview<TElem>(const sv::basic_string_view<TElem>& r)
       : base(r) {}
 
-    basic_string_view<TElem>& operator=(const basic_string_view<TElem>& r) {
+    basic_buffered_stringview<TElem>(const sv::basic_string<TElem>& r)
+      : base(r) {}
+
+    sv::basic_string_view<TElem>& operator=(const sv::basic_string_view<TElem>& r) {
+      return base::operator=(r);
+    }
+
+    sv::basic_string_view<TElem>& operator=(const std::basic_string<TElem>& r) {
       return base::operator=(r);
     }
 
@@ -45,7 +52,7 @@ namespace flexbin {
       *this = buffer_;
     }
 
-    const char * begin() const { return data();  }
+    const char * begin() const { return base::data();  }
 
   private:
     std::basic_string<TElem> buffer_;
