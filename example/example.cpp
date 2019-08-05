@@ -275,6 +275,8 @@ namespace flexbin_experimental {
       return nbytes;
   }
 
+
+  // packer
   template <typename... Args>
   struct type_packer;
 
@@ -318,6 +320,9 @@ namespace flexbin_experimental {
      }
   };
 
+  // unpacker
+
+
   template<typename T>
   struct type_writer
   {
@@ -332,6 +337,8 @@ namespace flexbin_experimental {
     }
 
   };
+
+
   ///////////
   template<>
   struct type_traits<uint8_t> : 

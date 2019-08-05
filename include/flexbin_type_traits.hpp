@@ -11,6 +11,7 @@ namespace flexbin
   struct type_traits
   {
     enum { code_ = 29 /* "object" field id */ };
+
     //inline static size_t write( std::basic_ostream<char>& ostr, const T& ) { return 0;}
   };
 
