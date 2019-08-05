@@ -10,13 +10,14 @@ namespace flexbin_experimental {
   namespace type_code {
     template<typename T> uint8_t get() { return 29; }
     template<> uint8_t get<uint64_t>() { return 16; }
+    template<> uint8_t get<uint32_t>() { return 8; }
+    template<> uint8_t get<uint16_t>() { return 4; }
     template<> uint8_t get<uint8_t>() { return 2; }
   }
 
   template<typename T, class Enabler = void>
   struct type_traits
   {
-    enum { code_ = 29 /* "object" field id */ };
   };
 
   using ostream = flexbin::ostream;
@@ -24,7 +25,7 @@ namespace flexbin_experimental {
 
   template<typename T>
   size_t write_field_header(ostream& ostr, uint8_t field_id) {
-    uint8_t code = type_traits<T>::code_;
+    uint8_t code = type_code::get<T>();
     auto nbytes = sizeof(T) + 2;
     ostr.write(reinterpret_cast<const char*>(&code), 1);
     ostr.write(reinterpret_cast<const char*>(&field_id), 1);
@@ -94,69 +95,94 @@ namespace flexbin_experimental {
     public type_writer<uint8_t>,
     type_packer<uint8_t>
   {
-    enum { default_value_ = 0 };
-    enum { code_ = 2 };
   };
+
+  template<>
+  struct type_traits<uint16_t> :
+    public type_writer<uint16_t>,
+    type_packer<uint16_t, uint8_t> // base class first, candidates next
+  {
+  };
+
 
   template<>
   struct type_traits<uint32_t> :
     public type_writer<uint32_t>,
-    type_packer<uint32_t, uint8_t> // base class first, candidates next
+    type_packer<uint32_t, uint8_t, uint16_t> // base class first, candidates next
   {
-    enum { default_value_ = 0 };
-    enum { code_ = 8 };
   };
 
   template<>
   struct type_traits<uint64_t> :
     public type_writer<uint64_t>,
-    type_packer<uint64_t, uint8_t, uint32_t>// base class first, candidates next
+    type_packer<uint64_t, uint8_t, uint16_t, uint32_t>// base class first, candidates next
   {
-    enum { default_value_ = 0 };
-    enum { code_ = 17 };
   };
   /////////////
   struct flexbin_read_dumper {
-    size_t indent_ = 0;
-    size_t indent_step_ = 2;
-
-    std::string indent() { return std::string(indent_, ' '); }
-
-    bool on_object_header(uint32_t size, uint16_t id = 0) {
-      std::cout << indent() << "OBJECT size: " << size << " id: " << id << std::endl;
-      indent_ += indent_step_;
+    static bool on_object_header(uint32_t size, uint16_t id = 0) {
+      std::cout << "OBJECT size: " << (int) size << " id: " << (int)id << std::endl;
       return true;
     }
 
-    template<typename T>
-    bool on_value(size_t id, const T& value) {
-      std::cout << indent() << "FIELD id: " << id << std::endl;
+    static bool on_value(uint8_t type, uint8_t id) {
+      std::cout << "FIELD type: " << (int) id << " id: " << (int) id << std::endl;
+      return true;
     }
 
-    bool on_end_marker() {
-      if (indent_ < indent_step_) {
-        std::cerr << "Malformed packet, start/close object mismatched" << std::endl;
-        return false;
-      }
-
-      indent_ -= indent_step_;
-      std::cout << indent() << "OBJECT end" << std::endl;
+    static bool on_end_marker() {
+      std::cout << "OBJECT end" << std::endl;
       return true;
     }
   };
 
+  template<typename handler>
   struct flexbin_reader {
-    bool dump(const char *data, size_t nbytes) {
-      size_t pos = 0;
-      while (pos < nbytes) {
-      
-      }
+    bool read_header(flexbin::istream& istr) {
+      uint32_t size = 0;
+      if (!type_traits<uint32_t>::read(istr, size))
+        return false;
+
+      uint16_t id = 0;
+      if (!type_traits<uint16_t>::read(istr, id))
+        return false;
+
+      return handler::on_object_header(size, id);
+
     }
 
+    bool read_variable(flexbin::istream& istr) {
+      uint8_t type = 0;
+      if (!type_traits<uint8_t>::read(istr, type))
+        return false;
+
+      uint8_t field_id = 0;
+      if (!type_traits<uint8_t>::read(istr, field_id))
+        return false;
+
+      return handler::on_value(type, field_id);
+    }
+
+    bool read_object(flexbin::istream& istr) {
+      if (!read_header(istr))
+        return false;
+
+      while (read_variable(istr))
+        void(0);
+
+      return true;
+    }
+
+
+    bool dump(const char *data, size_t nbytes) {
+      flexbin::istream istr(data, nbytes);
+      return read_object(istr);
+    }
   };
 
 }
 
+/*
 void test_new_write()
 {
   constexpr size_t bufsize = 256;
@@ -181,10 +207,7 @@ void test_new_write()
   std::cout << std::endl;
   std::cout.flags(f);
 }
-
-void dump(const char *data, size_t nbytes) {
-
-}
+*/
 
 int main(int argc, char** argv)
 {
@@ -199,6 +222,8 @@ int main(int argc, char** argv)
   }
 
   std::vector<char> data(std::istreambuf_iterator<char>(input), {});
-  dump(data.data(), data.size());
+
+  flexbin_experimental::flexbin_reader<flexbin_experimental::flexbin_read_dumper> dumper;
+  dumper.dump(data.data(), data.size());
   return 0; 
 }
