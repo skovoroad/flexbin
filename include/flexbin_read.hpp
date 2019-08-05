@@ -8,36 +8,43 @@
 
 namespace flexbin
 {
-  template<typename T, typename candidateT>
-  inline void unpack_if_type_matches(istream& istr,
-    size_t & nbytes,
-    uint8_t type_code,
-    T& value,
-    const candidateT& phony
-  ) {
-    if (nbytes > 0) // already unpacked 
-      return;
-    if (type_traits<candidateT>::code_ != type_code)
-      return;
 
-    candidateT candidate_value;
-    type_traits<candidateT>::read(istr, candidate_value);
-    nbytes = sizeof(candidateT);
-    value = candidate_value;
-  }
+  template<typename TCandidate, typename T>
+  bool read_packed_value(flexbin::istream& istr, T& retval) {
+   TCandidate tmp;
+   flexbin::type_traits<TCandidate>::read(istr, tmp);
+   retval = static_cast<T>(tmp);
+   return true;
+  }    
+
+  enum PhonyEnum {};
 
   template<typename T>
   size_t unpack_value(istream& istr, uint8_t type, T& value) {
-
-    auto pack_versions = type_traits<T>::candidates(value);
-    size_t unpacked_nbytes = 0;
-
-    auto pack_candidates = [&](auto&&... args) {
-      ((unpack_if_type_matches(istr, unpacked_nbytes, type, value,  args)), ...);
-    };
-
-    std::apply(pack_candidates, pack_versions);
-    return unpacked_nbytes;
+      switch (type){
+        case flexbin::type_traits<bool>::code_: 
+          return read_packed_value<bool, T>(istr, value);
+        case flexbin::type_traits<PhonyEnum>::code_:
+          return read_packed_value<int, T>(istr, value);
+        case flexbin::type_traits<uint64_t>::code_:
+          return read_packed_value<uint64_t, T>(istr, value);
+        case flexbin::type_traits<uint32_t>::code_:
+          return read_packed_value<uint32_t, T>(istr, value);
+        case flexbin::type_traits<uint16_t>::code_:
+          return read_packed_value<uint16_t, T>(istr, value);
+        case flexbin::type_traits<uint8_t>::code_:
+          return read_packed_value<uint8_t, T>(istr, value);
+        case flexbin::type_traits<int64_t>::code_:
+          return read_packed_value<int64_t, T>(istr, value);
+        case flexbin::type_traits<int32_t>::code_:
+          return read_packed_value<int32_t, T>(istr, value);
+        case flexbin::type_traits<int16_t>::code_:
+          return read_packed_value<int16_t, T>(istr, value);
+        case flexbin::type_traits<int8_t>::code_:
+          return read_packed_value<int8_t, T>(istr, value);
+        default:
+          return false;
+      };
   }
 
   ///////////////////

@@ -292,7 +292,6 @@ namespace flexbin_experimental {
 
       return type_packer<T, Rest...>::pack(ostr, field_id, val); 
      }
-
   };
 
   template<typename T, typename TCandidate>
@@ -319,9 +318,6 @@ namespace flexbin_experimental {
                type_traits<T>::write(ostr, val);
      }
   };
-
-  // unpacker
-
 
   template<typename T>
   struct type_writer
