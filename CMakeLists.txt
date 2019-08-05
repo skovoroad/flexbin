@@ -19,8 +19,8 @@ set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")
 
-add_subdirectory(example)
 add_subdirectory(fbdump)
+add_subdirectory(example)
 
 if(DEFINED FLEXBIN_ENABLE_TEST)
   add_subdirectory(test)
