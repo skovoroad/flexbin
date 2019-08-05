@@ -21,8 +21,11 @@ namespace flexbin
     template<typename T, typename TDeleter> std::basic_istream<char>& operator>> (std::unique_ptr<T, TDeleter>& obj){
       return istream::operator>> (*obj);
     }
+
+    bool failed() { return failed_; }
   private:
     flexbin::memmap_buffer mem_buf_;
+    bool failed_ = false;
   };
 
   struct ostream : public std::basic_ostream<char>
@@ -63,10 +66,12 @@ namespace flexbin
       return true;
     }
 
+    bool failed() { return failed_; }
   private:
     bool count_mode_ = false;
     std::streamsize count_ = 0;
     flexbin::memmap_buffer mem_buf_;
     char *pbase_;
+    bool failed_ = false;
   };
 }

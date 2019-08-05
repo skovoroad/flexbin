@@ -44,7 +44,7 @@ namespace flexbin
       writer.write_simplified_fields(*this, obj) &&
       writer.write_bottom(*this, obj)) )
     {
-      setstate(rdstate() & std::ios_base::badbit);
+      failed_ = true;
     }
     return *this;
   }
@@ -61,7 +61,7 @@ namespace flexbin
       reader.read_simplified_fields(*this, obj) &&
       reader.read_bottom(*this, obj)) )
     {
-      setstate(rdstate() & std::ios_base::badbit);
+      failed_ = true;
     }
 
     return *this;

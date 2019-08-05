@@ -25,7 +25,7 @@ namespace flexbin {
     basic_buffered_stringview<TElem>(const sv::basic_string_view<TElem>& r)
       : base(r) {}
 
-    basic_buffered_stringview<TElem>(const sv::basic_string<TElem>& r)
+    basic_buffered_stringview<TElem>(const std::basic_string<TElem>& r)
       : base(r) {}
 
     sv::basic_string_view<TElem>& operator=(const sv::basic_string_view<TElem>& r) {
