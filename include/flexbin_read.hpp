@@ -61,10 +61,10 @@ namespace flexbin
     }
 
     static bool unpack_value(istream& istr, uint8_t type, T& value) {
-      FLEXBIN_DEBUG_LOG("  unpack object, type " << (int)type << " class_id " << (int)T::flexbin_class_id )
+      FLEXBIN_DEBUG_LOG("   unpack object, type " << (int)type << " class_id " << (int)T::flexbin_class_id )
       istr >> value;
       bool retval = istr.good();
-      FLEXBIN_DEBUG_LOG("  unpack object end, type " << (int)type << " class_id " << (int)T::flexbin_class_id << " retval " << retval)
+      FLEXBIN_DEBUG_LOG("   unpack object end, type " << (int)type << " class_id " << (int)T::flexbin_class_id << " retval " << retval)
       return retval; 
     }
 
@@ -97,7 +97,7 @@ namespace flexbin
 
     static bool unpack_value(istream& istr, uint8_t type, std::basic_string<T>& value) {
       auto retval = type_traits<std::basic_string<T>>::read(istr, value);
-      FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type_traits<T>::code_)
+      FLEXBIN_DEBUG_LOG("unpack_value string, type " << (int)type_traits<std::basic_string<T>>::code_)
       return istr.good();
     }
   };
@@ -199,8 +199,8 @@ namespace flexbin
 
     static bool unpack_value(istream& istr, uint8_t type, std::unique_ptr<T, TDeleter>& value) {
       if (!value)
-        return false; // TODO: wtf? we need way to create it here
-        //value = std::make_unique<T>();
+        //return false; // TODO: wtf? we need way to create it here
+        value.reset(new T);
       bool retval = field_reader<T>::unpack_value(istr, type, *value);
       FLEXBIN_DEBUG_LOG("unpack_value unique_ptr: type " << (int)type << " retval " << retval << " type: " << type_traits<T>::code_)
         return retval;
@@ -241,7 +241,7 @@ namespace flexbin
       return false;
 
     if (id != field_id) {
-      FLEXBIN_DEBUG_LOG("ERROR read required field: field id " << (int)id << " expected " << field_id)
+      FLEXBIN_DEBUG_LOG("ERROR read required field: field id " << (int)id << " expected " << (int)field_id)
       return false;
     }
     FLEXBIN_DEBUG_LOG("-- read required field: field id " << (int)id )
@@ -418,7 +418,7 @@ namespace flexbin
         return false;
 
       if (id != T::flexbin_class_id) {
-        FLEXBIN_DEBUG_LOG("ERROR read object header: class id " << (int)id << " expected " << T::flexbin_class_id)
+        FLEXBIN_DEBUG_LOG("ERROR read object header: class id " << (int)id << " expected " << (int)T::flexbin_class_id)
         return false;
       }
 
