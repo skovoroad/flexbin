@@ -27,7 +27,8 @@ namespace flexbin {
 
     basic_buffered_stringview<TElem>(const basic_buffered_stringview<TElem>& r)
       : base(r) {
-      bufferize();
+      if(!r.buffer_.empty())  // if r is not bufferized - use just as string_view
+        bufferize();
     }
 
     basic_buffered_stringview<TElem>(const std::basic_string<TElem>& r)
@@ -39,7 +40,8 @@ namespace flexbin {
 
     sv::basic_string_view<TElem>& operator=(const basic_buffered_stringview<TElem>& r) {
       base::operator=(r);
-      bufferize();
+      if (!r.buffer_.empty()) // if r is not bufferized - use just as string_view
+        bufferize();
       return *this;
     }
 
