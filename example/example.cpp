@@ -251,12 +251,6 @@ int run()
 }
 
 namespace flexbin_experimental {
-  namespace type_code {
-    template<typename T> uint8_t get() {return 29;}
-    template<> uint8_t get<uint64_t>() {return 16;}
-    template<> uint8_t get<uint8_t>()  {return 2;}
-  }
-  
   template<typename T, class Enabler = void>
   struct type_traits
   {
@@ -346,9 +340,19 @@ namespace flexbin_experimental {
   };
 
   template<>
+  struct type_traits<uint16_t> : 
+    public type_writer<uint16_t>,
+           type_packer<uint16_t, uint8_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 4 };
+  };
+
+
+  template<>
   struct type_traits<uint32_t> : 
     public type_writer<uint32_t>,
-           type_packer<uint32_t, uint8_t> // base class first, candidates next
+           type_packer<uint32_t, uint8_t, uint16_t> // base class first, candidates next
   {
     enum { default_value_ = 0 };
     enum { code_ = 8 };
@@ -357,13 +361,13 @@ namespace flexbin_experimental {
   template<>
   struct type_traits<uint64_t> : 
     public type_writer<uint64_t>,
-           type_packer<uint64_t, uint8_t, uint32_t>// base class first, candidates next
+           type_packer<uint64_t, uint8_t, uint16_t, uint32_t>// base class first, candidates next
   {
     enum { default_value_ = 0 };
-    enum { code_ = 17 };
+    enum { code_ = 16 };
   };
 }
-
+///////////////////
 void test_new_write()
 {
   constexpr size_t bufsize = 256;

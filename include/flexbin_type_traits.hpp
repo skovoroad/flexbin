@@ -16,6 +16,19 @@ namespace flexbin
   };
 
   template<typename T>
+  struct type_traits<std::vector<T>>
+  {
+    enum { code_ = 25 };
+  };
+
+  template<typename T>
+  struct type_traits<std::unordered_set<T>>
+  {
+    enum { code_ = 25 };
+  };
+
+
+  template<typename T>
   struct type_traits<T, std::enable_if_t<std::is_enum<T>::value> >
   {
     enum { code_ = 200 };
@@ -37,18 +50,6 @@ namespace flexbin
     }
   };
 
-
-  template<typename T>
-  struct type_traits<std::vector<T>>
-  {
-    enum { code_ = 25 };
-  };
-
-  template<typename T>
-  struct type_traits<std::unordered_set<T>>
-  {
-    enum { code_ = 25 };
-  };
 
 
   template<>
@@ -302,11 +303,11 @@ namespace flexbin
       return istr.good();
     }
 
-    inline static auto candidates(const std::basic_string<T>& value) {
+/*    inline static auto candidates(const std::basic_string<T>& value) {
       return std::make_tuple(
         static_cast<std::basic_string<T>>(value)
       );
-    }
+    }*/
   };
 
   template<typename T>
@@ -339,12 +340,12 @@ namespace flexbin
 
       return istr.good();
     }
-
+/*
     inline static auto candidates(const basic_buffered_stringview<T>& value) {
       return std::make_tuple(
         static_cast<basic_buffered_stringview<T>>(value)
       );
-    }
+    }*/
   };
 
 
