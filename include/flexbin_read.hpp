@@ -25,7 +25,7 @@ namespace flexbin
         case flexbin::type_traits<bool>::code_: 
           return read_packed_value<bool, T>(istr, value);
         case flexbin::type_traits<PhonyEnum>::code_:
-          return read_packed_value<int, T>(istr, value);
+          return read_packed_value<T, T>(istr, value);
         case flexbin::type_traits<uint64_t>::code_:
           return read_packed_value<uint64_t, T>(istr, value);
         case flexbin::type_traits<uint32_t>::code_:
