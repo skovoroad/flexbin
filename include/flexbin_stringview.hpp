@@ -57,7 +57,7 @@ namespace flexbin {
 
     void bufferize() {
 #ifdef FLEXBIN_USE_BOOST
-      buffer_.assign(data(), size());
+      buffer_.assign(sv::basic_string_view<TElem>::data(), sv::basic_string_view<TElem>::size());
 #else
       buffer_ = *this;
 #endif

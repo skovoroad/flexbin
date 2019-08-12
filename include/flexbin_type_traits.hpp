@@ -5,15 +5,158 @@
 #include "flexbin_streams.hpp"
 #include "flexbin_stringview.hpp"
 
-namespace flexbin
-{
+namespace flexbin {
   template<typename T, class Enabler = void>
   struct type_traits
   {
     enum { code_ = 29 /* "object" field id */ };
-
-    //inline static size_t write( std::basic_ostream<char>& ostr, const T& ) { return 0;}
   };
+
+  template<typename T>
+  bool write_field_header(ostream& ostr, uint8_t field_id) {
+    uint8_t code = type_traits<T>::code_;
+    auto nbytes = sizeof(T) + 2;
+    ostr.write(reinterpret_cast<const char*>(&code), 1);
+    ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+    return !ostr.failed() && ostr.good();
+  }
+
+  /////////////////
+  // packer
+  template <typename... Args>
+  struct type_packer;
+
+  template<typename T, typename TCandidate, typename... Rest>
+  struct type_packer<T, TCandidate, Rest...>
+  {
+    inline static bool pack(ostream& ostr, uint8_t field_id, const T& val) {
+      auto candidate = static_cast<TCandidate>(val);
+      if (candidate == val) {
+        return write_field_header<TCandidate>(ostr, field_id) &&
+          type_traits<TCandidate>::write(ostr, val);
+      }
+
+      return type_packer<T, Rest...>::pack(ostr, field_id, val);
+    }
+  };
+
+  template<typename T, typename TCandidate>
+  struct type_packer<T, TCandidate>
+  {
+    inline static bool pack(ostream& ostr, uint8_t field_id, const T& val) {
+      auto candidate = static_cast<TCandidate>(val);
+      if (candidate == val) {
+        return write_field_header<TCandidate>(ostr, field_id) &&
+          type_traits<TCandidate>::write(ostr, candidate);
+      }
+
+      return write_field_header<T>(ostr, field_id) &&
+        type_traits<T>::write(ostr, val);
+    }
+  };
+
+
+  template<typename T>
+  struct type_packer<T>
+  {
+    inline static bool pack(ostream& ostr, uint8_t field_id, const T& val) {
+      return write_field_header<T>(ostr, field_id) &&
+        type_traits<T>::write(ostr, val);
+    }
+  };
+  // packer
+  /////////////////
+
+  template<typename T>
+  struct type_writer
+  {
+    inline static bool write(ostream& ostr, const T& val) {
+      ostr.write(reinterpret_cast<const char*>(&val), sizeof(T));
+      return !ostr.failed() && ostr.good();
+    }
+
+    inline static bool read(istream& istr, T& val) {
+      istr.read(reinterpret_cast<char*>(&val), sizeof(T));
+      return istr.good();
+    }
+
+  };
+
+  ///////////
+  template<>
+  struct type_traits<uint8_t> :
+    public type_writer<uint8_t>,
+    type_packer<uint8_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 2 };
+  };
+
+  template<>
+  struct type_traits<uint16_t> :
+    public type_writer<uint16_t>,
+    type_packer<uint16_t, uint8_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 4 };
+  };
+
+
+  template<>
+  struct type_traits<uint32_t> :
+    public type_writer<uint32_t>,
+    type_packer<uint32_t, uint8_t, uint16_t> // base class first, candidates next
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 8 };
+  };
+
+  template<>
+  struct type_traits<uint64_t> :
+    public type_writer<uint64_t>,
+    type_packer<uint64_t, uint8_t, uint16_t, uint32_t>// base class first, candidates next
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 16 };
+  };
+
+  ///////////
+  template<>
+  struct type_traits<int8_t> :
+    public type_writer<int8_t>,
+    type_packer<int8_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 3 };
+  };
+
+  template<>
+  struct type_traits<int16_t> :
+    public type_writer<int16_t>,
+    type_packer<int16_t, int8_t>
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 5 };
+  };
+
+  template<>
+  struct type_traits<int32_t> :
+    public type_writer<int32_t>,
+    type_packer<int32_t, int8_t, int16_t> // base class first, candidates next
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 9 };
+  };
+
+  template<>
+  struct type_traits<int64_t> :
+    public type_writer<int64_t>,
+    type_packer<int64_t, int8_t, int16_t, int32_t>// base class first, candidates next
+  {
+    enum { default_value_ = 0 };
+    enum { code_ = 17 };
+  };
+
 
   template<typename T>
   struct type_traits<std::vector<T>>
@@ -27,21 +170,17 @@ namespace flexbin
     enum { code_ = 25 };
   };
 
-
   template<typename T>
   struct type_traits<T, std::enable_if_t<std::is_enum<T>::value> >
+    : public type_packer<T>
   {
     enum { code_ = 200 };
     enum { default_value_ = 0 };
     constexpr static size_t enum_bytes = sizeof(T);
 
-    inline static auto candidates(const T& value) {
-      return std::make_tuple(value);
-    }
-
-    inline static size_t write( ostream& ostr, const T& val) { 
+    inline static bool write(ostream& ostr, const T& val) {
       ostr.write(reinterpret_cast<const char*>(&val), enum_bytes);
-      return enum_bytes; 
+      return !ostr.failed() && ostr.good();
     }
 
     inline static bool read(istream& istr, T& val) {
@@ -50,22 +189,17 @@ namespace flexbin
     }
   };
 
-
-
   template<>
   struct type_traits<bool>
+    : public type_packer<bool>
   {
     enum { default_value_ = 0 };
     enum { code_ = 1 };
 
-    inline static auto candidates(const bool& value) {
-      return std::make_tuple(value);
-    }
-
-    inline static size_t write( ostream& ostr, const bool& val) { 
+    inline static bool write(ostream& ostr, const bool& val) {
       char bval = val ? 1 : 0;
       ostr.write(reinterpret_cast<const char*>(&bval), 1);
-      return 1; 
+      return !ostr.failed() && ostr.good();
     }
 
     inline static bool read(istream& istr, bool& val) {
@@ -78,236 +212,28 @@ namespace flexbin
     }
   };
 
-
-  template<>
-  struct type_traits<uint64_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 16 };
-
-    inline static auto candidates(const uint64_t& value) {
-      return std::make_tuple(
-        static_cast<uint8_t>(value),
-        static_cast<uint16_t>(value),
-        static_cast<uint32_t>(value),
-        static_cast<uint64_t>(value)
-      );
-    }
-
-    inline static size_t write( ostream& ostr, const uint64_t& val) { 
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint64_t));
-      return sizeof(uint64_t); 
-    }
-
-    inline static bool read(istream& istr, uint64_t& val) {
-      istr.read(reinterpret_cast<char*>(&val), sizeof(uint64_t));
-      return istr.good();
-    }
-  };
-
-  template<>
-  struct type_traits<int64_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 17 };
-
-    inline static auto candidates(const int64_t& value) {
-      return std::make_tuple(
-        static_cast<int8_t>(value),
-        static_cast<int16_t>(value),
-        static_cast<int32_t>(value),
-        static_cast<int64_t>(value)
-      );
-    }
-
-    inline static size_t write( ostream& ostr, const int64_t& val) { 
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(int64_t));
-      return sizeof(int64_t); 
-    }
-
-    inline static bool read(istream& istr, int64_t& val) {
-      istr.read(reinterpret_cast<char*>(&val), sizeof(int64_t));
-      return istr.good();
-    }
-  };
-
-  template<>
-  struct type_traits<uint32_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 8 };
-
-    inline static size_t write(ostream& ostr, const uint32_t& val ) {
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint32_t));
-      return sizeof(uint32_t); 
-     }
-
-    inline static bool read(istream& istr, uint32_t& val) {
-      istr.read(reinterpret_cast<char*>(&val), sizeof(uint32_t));
-      return istr.good();
-    }
-
-    inline static auto candidates(const uint32_t& value)  {
-      return std::make_tuple(
-        static_cast<uint8_t>(value),
-        static_cast<uint16_t>(value),
-        static_cast<uint32_t>(value)
-      );
-    }
-  };
-
-  template<>
-  struct type_traits<int32_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 9 };
-
-    inline static size_t write(ostream& ostr, const int32_t& val ) {
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(int32_t));
-      return sizeof(int32_t); 
-     }
-
-    inline static bool read(istream& istr, int32_t& val) {
-      istr.read(reinterpret_cast<char*>(&val), sizeof(int32_t));
-      return istr.good();
-    }
-
-    inline static auto candidates(const int32_t& value)  {
-      return std::make_tuple(
-        static_cast<int8_t>(value),
-        static_cast<int16_t>(value),
-        static_cast<int32_t>(value)
-      );
-    }
-  };
-
-  template<>
-  struct type_traits<uint16_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 4 };
-
-    inline static size_t write(ostream& ostr, const uint16_t& val) {
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint16_t));
-      return sizeof(uint16_t);
-    }
-
-    inline static bool read(istream& istr, uint16_t& val) {
-      istr.read(reinterpret_cast<char*>(&val), sizeof(uint16_t));
-      return istr.good();
-    }
-
-    inline static auto candidates(const uint16_t& value) {
-      return std::make_tuple(
-        static_cast<uint8_t>(value),
-        static_cast<uint16_t>(value)
-      );
-    }
-  };
-
-  template<>
-  struct type_traits<int16_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 5 };
-
-    inline static size_t write(ostream& ostr, const int16_t& val) {
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(int16_t));
-      return sizeof(int16_t);
-    }
-
-    inline static bool read(istream& istr, int16_t& val) {
-      istr.read(reinterpret_cast<char*>(&val), sizeof(int16_t));
-      return istr.good();
-    }
-
-    inline static auto candidates(const int16_t& value) {
-      return std::make_tuple(
-        static_cast<int8_t>(value),
-        static_cast<int16_t>(value)
-      );
-    }
-  };
-
-
-  template<>
-  struct type_traits<uint8_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 2 };
-    
-    inline static size_t write(ostream& ostr, const uint8_t& val ) {
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(uint8_t));
-      return sizeof(uint8_t); 
-     }
-
-    inline static bool read(istream& istr, uint8_t& val) {
-      istr.read(reinterpret_cast<char*>(&val), sizeof(uint8_t));
-      return istr.good();
-    }
-
-    inline static auto candidates(const uint8_t& value) {
-      return std::make_tuple(
-        static_cast<uint8_t>(value)
-      );
-    }
-  };
-
-  template<>
-  struct type_traits<int8_t>
-  {
-    enum { default_value_ = 0 };
-    enum { code_ = 3 };
-    
-    inline static size_t write(ostream& ostr, const int8_t& val ) {
-      ostr.write(reinterpret_cast<const char*>(&val), sizeof(int8_t));
-      return sizeof(int8_t); 
-     }
-
-    inline static bool read(istream& istr, int8_t& val) {
-      istr.read(reinterpret_cast<char*>(&val), sizeof(int8_t));
-      return istr.good();
-    }
-
-    inline static auto candidates(const int8_t& value) {
-      return std::make_tuple(
-        static_cast<int8_t>(value)
-      );
-    }
-  };
-
-
   template<typename T>
   struct type_traits<std::basic_string<T>>
   {
     enum { code_ = 21 };
     enum { default_value_ = 0 };
-
-    inline static size_t write(ostream& ostr, const std::basic_string<T>& str) {
-      size_t len = str.size();
-      type_traits<size_t>::write(ostr, len);
+    typedef uint16_t len_t;
+    inline static bool write(ostream& ostr, const std::basic_string<T>& str) {
+      len_t len = static_cast<len_t>(str.size());
+      type_traits<len_t>::write(ostr, len);
       ostr.write(reinterpret_cast<const char*>(str.data()), len * sizeof(T));
-
-      return len + sizeof(size_t); 
+      return !ostr.failed() && ostr.good();
     }
 
     inline static bool read(istream& istr, std::basic_string<T>& val) {
-      size_t len = 0;
-      if (!type_traits<size_t >::read(istr, len)) {
-        // ...
+      len_t len = 0;
+      if (!type_traits<len_t>::read(istr, len)) 
         return false;
-      }
+
       val.resize(len);
       istr.read(reinterpret_cast<char*>(val.data()), len * sizeof(T));
-
       return istr.good();
     }
-
-/*    inline static auto candidates(const std::basic_string<T>& value) {
-      return std::make_tuple(
-        static_cast<std::basic_string<T>>(value)
-      );
-    }*/
   };
 
   template<typename T>
@@ -315,21 +241,19 @@ namespace flexbin
   {
     enum { code_ = 21 };
     enum { default_value_ = 0 };
+    typedef uint16_t len_t;
 
-    inline static size_t write(ostream& ostr, const basic_buffered_stringview<T>& str) {
-      size_t len = str.size();
-      type_traits<size_t>::write(ostr, len);
+    inline static bool write(ostream& ostr, const basic_buffered_stringview<T>& str) {
+      len_t len = static_cast<len_t>(str.size());
+      type_traits<len_t>::write(ostr, len);
       ostr.write(reinterpret_cast<const char*>(str.data()), len * sizeof(T));
-
-      return len + sizeof(size_t);
+      return !ostr.failed() && ostr.good();
     }
 
     inline static bool read(istream& istr, basic_buffered_stringview<T>& str) {
-      size_t len = 0;
-      if (!type_traits<size_t >::read(istr, len)) {
-        // ...
+      len_t len = 0;
+      if (!type_traits<len_t >::read(istr, len))
         return false;
-      }
 
       std::basic_string<T> buffer;
       buffer.resize(len);
@@ -340,14 +264,7 @@ namespace flexbin
 
       return istr.good();
     }
-/*
-    inline static auto candidates(const basic_buffered_stringview<T>& value) {
-      return std::make_tuple(
-        static_cast<basic_buffered_stringview<T>>(value)
-      );
-    }*/
   };
 
-
   constexpr uint8_t end_marker = 255;
-} // namespace flexbin
+}

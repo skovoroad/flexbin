@@ -14,7 +14,7 @@ namespace flexbin
 // function to "pack" value of fundamental type: f.e. write "small" uint64_t value as uint8_t value
 // pack_if_equal - write value, if "small" equal to "big" value
 // pack_value - iterate through "smaller" types to pack "bigger"
-
+  /*
   template<typename T, typename candidateT>
   void pack_if_equal(ostream& ostr,
     const T& value,
@@ -47,7 +47,7 @@ namespace flexbin
     std::apply(pack_candidates, pack_versions);
     return packed_nbytes;
   }
-
+  */
 ///////////////////
 // Write methods selector for different field types: fundamental, std::string or struct/class
   template <typename T, class Enabler = void>
@@ -114,7 +114,7 @@ namespace flexbin
 
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
       FLEXBIN_DEBUG_LOG("pack fundamental type " << (int)type_traits<T>::code_ << " field_id" << (int) field_id << " value " << (int)value)
-      return pack_value(ostr, value, field_id);
+      return type_traits<T>::pack(ostr, field_id, value);
     }
   };
 
@@ -127,9 +127,8 @@ namespace flexbin
     }
 
     static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
-      //return type_traits<T>::pack(ostr, value);
       FLEXBIN_DEBUG_LOG("pack enum field: field_id" << field_id << " value " << (int) value)
-      return pack_value(ostr, value, field_id);
+      return type_traits<T>::pack(ostr, field_id, value);
     }
   };
 

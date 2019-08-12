@@ -166,6 +166,7 @@ namespace flexbin
 
     static bool read(istream& istr, std::unordered_set < T>& value) {
       FLEXBIN_DEBUG_LOG("ERROR attempt to read unordered_set")
+      return false;
     }
 
     static bool unpack_value(istream& istr, uint8_t type, std::unordered_set < T>& value) {

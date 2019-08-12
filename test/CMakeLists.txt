@@ -37,6 +37,6 @@ add_test(NAME    flexbin_test
 set_property(TARGET flexbin_test PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-add_custom_command(TARGET flexbin_test
-                   POST_BUILD
-                   COMMAND ctest -C $<CONFIGURATION> --output-on-failure)
+#add_custom_command(TARGET flexbin_test
+#                   POST_BUILD
+#                   COMMAND ctest -C $<CONFIGURATION> --output-on-failure)

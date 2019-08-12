@@ -249,12 +249,12 @@ int run()
   std::cout << (a == b) << std::endl;
   return 0;
 }
-
+/*
 namespace flexbin_experimental {
   template<typename T, class Enabler = void>
   struct type_traits
   {
-    enum { code_ = 29 /* "object" field id */ };
+    enum { code_ = 29 };
   };  
 
   using ostream = flexbin::ostream;
@@ -392,7 +392,7 @@ void test_new_write()
   std::cout << std::endl;
   std::cout.flags(f);  
 }
-
+*/
 void test_buffered_stringview()
 {
   std::string text("lalala lululu");
