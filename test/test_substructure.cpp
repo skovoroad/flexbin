@@ -122,3 +122,26 @@ TEST(TestFlexbin, SubstructSimplified)
   serialize_and_compare(a1, a2);
 }
 */
+
+TEST(TestFlexbin, SubstructSubfieldRequired)
+{
+  struct A {
+    int a_ = 0;
+    struct B {
+      short c_ = 0;
+      short c() const{ return c_; }
+    } b_;
+
+    FLEXBIN_CLASS_ID(1);
+    FLEXBIN_SERIALIZE_REQUIRED(a_, b_.c_, b_.c());
+
+    bool operator==(const A &r) const {
+      return a_ == r.a_ && b_.c_ == r.b_.c_;
+    }
+  };
+
+  A a1{ 999, {999} };
+  A a2{ 878787,  {87} };
+
+  serialize_and_compare(a1, a2);
+}
