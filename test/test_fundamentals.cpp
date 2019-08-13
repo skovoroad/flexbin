@@ -69,7 +69,7 @@ struct TestDataOneFieldSimplified {
 
 
 template<typename TestData> 
-inline void test_fundamental_type_required_field()
+inline void test_fundamental_type_field()
 {
   {
     TestData t1 { std::numeric_limits<typename TestData::Basetype>::min() };
@@ -114,47 +114,47 @@ inline void test_fundamental_type_required_field()
 
 TEST(TestFlexbin, FundamentalRequired)
 {
-  test_fundamental_type_required_field<TestDataOneFieldReqiured<uint64_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldReqiured<uint32_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldReqiured<uint16_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldReqiured<uint8_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldReqiured<int64_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldReqiured<int32_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldReqiured<int16_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldReqiured<int8_t>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<uint64_t>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<uint32_t>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<uint16_t>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<uint8_t>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<int64_t>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<int32_t>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<int16_t>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<int8_t>>();
 }
 TEST(TestFlexbin, FundamentalFixed)
 {
-  test_fundamental_type_required_field<TestDataOneFieldFixed<uint64_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldFixed<uint32_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldFixed<uint16_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldFixed<uint8_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldFixed<int64_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldFixed<int32_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldFixed<int16_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldFixed<int8_t>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<uint64_t>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<uint32_t>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<uint16_t>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<uint8_t>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<int64_t>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<int32_t>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<int16_t>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<int8_t>>();
 }
 TEST(TestFlexbin, FundamentalOptional)
 {
-  /*test_fundamental_type_required_field<TestDataOneFieldOptional<uint64_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldOptional<uint32_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldOptional<uint16_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldOptional<uint8_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldOptional<int64_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldOptional<int32_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldOptional<int16_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldOptional<int8_t>>();*/
+  test_fundamental_type_field<TestDataOneFieldOptional<uint64_t>>();
+  test_fundamental_type_field<TestDataOneFieldOptional<uint32_t>>();
+  test_fundamental_type_field<TestDataOneFieldOptional<uint16_t>>();
+  test_fundamental_type_field<TestDataOneFieldOptional<uint8_t>>();
+  test_fundamental_type_field<TestDataOneFieldOptional<int64_t>>();
+  test_fundamental_type_field<TestDataOneFieldOptional<int32_t>>();
+  test_fundamental_type_field<TestDataOneFieldOptional<int16_t>>();
+  test_fundamental_type_field<TestDataOneFieldOptional<int8_t>>();
 }
 TEST(TestFlexbin, FundamentalSimplified)
 {
-  test_fundamental_type_required_field<TestDataOneFieldSimplified<uint64_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldSimplified<uint32_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldSimplified<uint16_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldSimplified<uint8_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldSimplified<int64_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldSimplified<int32_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldSimplified<int16_t>>();
-  test_fundamental_type_required_field<TestDataOneFieldSimplified<int8_t>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<uint64_t>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<uint32_t>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<uint16_t>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<uint8_t>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<int64_t>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<int32_t>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<int16_t>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<int8_t>>();
 }
 
 TEST(TestFlexbin, Enum)

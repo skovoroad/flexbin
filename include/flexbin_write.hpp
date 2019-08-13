@@ -10,59 +10,23 @@
 
 namespace flexbin
 {
-////////////////////
-// function to "pack" value of fundamental type: f.e. write "small" uint64_t value as uint8_t value
-// pack_if_equal - write value, if "small" equal to "big" value
-// pack_value - iterate through "smaller" types to pack "bigger"
-  /*
-  template<typename T, typename candidateT>
-  void pack_if_equal(ostream& ostr,
-    const T& value,
-    size_t & nbytes,
-    uint8_t field_id,
-    const candidateT& candidate
-  ) {
-    if (nbytes > 0) // already packed with smaller type
-      return;
-    if (value == candidate)
-    {
-      uint8_t code = type_traits<candidateT>::code_;
-      nbytes = sizeof(candidateT) + 2;
-      ostr.write(reinterpret_cast<const char*>(&code), 1);
-      ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-      ostr.write(reinterpret_cast<const char*>(&candidate), sizeof(candidateT));
-    }
-  }
-
-  template<typename T>
-  size_t pack_value(ostream& ostr, const T& value, uint8_t field_id) {
-
-    auto pack_versions = type_traits<T>::candidates(value);
-    size_t packed_nbytes = 0;
-
-    auto pack_candidates = [&](auto&&... args) {
-      ((pack_if_equal(ostr, value, packed_nbytes, field_id, args)), ...);
-    };
-
-    std::apply(pack_candidates, pack_versions);
-    return packed_nbytes;
-  }
-  */
 ///////////////////
 // Write methods selector for different field types: fundamental, std::string or struct/class
   template <typename T, class Enabler = void>
   struct field_writer { 
 
-    static size_t write( ostream& ostr, const T& value) { 
+    static bool write( ostream& ostr, const T& value) { 
       ostr << value;
-      return 1;  // FUUUUU
+      return !ostr.failed() && ostr.good();  // FUUUUU
     }
 
-    static size_t pack( ostream& ostr, uint8_t field_id, const T& value) { 
+    static bool pack( ostream& ostr, uint8_t field_id, const T& value) { 
+      FLEXBIN_DEBUG_LOG("  pack object field: field_id " << (int)field_id << " class id " << T::flexbin_class_id)
       uint8_t code = type_traits<T>::code_;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-      FLEXBIN_DEBUG_LOG("  pack object field: field_id " << (int) field_id << " class id "  << T::flexbin_class_id )
+      if (ostr.failed() || !ostr.good())
+        return false;
       auto retval = write(ostr, value);
       FLEXBIN_DEBUG_LOG("  pack object field end: field_id " << (int)field_id << " class id " << T::flexbin_class_id)
       return retval;
@@ -73,16 +37,18 @@ namespace flexbin
   template <typename T>
   struct field_writer<std::basic_string<T>> {
   //struct field_writer<T, std::enable_if_t<std::is_base_of<std::string, T>::value> > {
-    static size_t write(ostream& ostr, const std::basic_string<T>& value) {
+    static bool write(ostream& ostr, const std::basic_string<T>& value) {
       FLEXBIN_DEBUG_LOG("write basic_string field:  value " << value)
       return type_traits<std::basic_string<T>>::write(ostr, value);
     }
 
-    static size_t pack(ostream& ostr, uint8_t field_id, const std::basic_string<T>& value) {
+    static bool pack(ostream& ostr, uint8_t field_id, const std::basic_string<T>& value) {
+      FLEXBIN_DEBUG_LOG("pack basic_string field: field_id " << (int)field_id << " value ")
       uint8_t code = type_traits<std::string>::code_;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-      FLEXBIN_DEBUG_LOG("pack basic_string field: field_id " << (int)field_id << " value ")
+      if (ostr.failed() || !ostr.good())
+        return false;
       return type_traits<std::basic_string<T>>::write(ostr, value) + 2;
     }
   };
@@ -92,27 +58,29 @@ namespace flexbin
   struct field_writer<flexbin::basic_buffered_stringview<T>> {
     static size_t write(ostream& ostr, const flexbin::basic_buffered_stringview<T>& value) {
       FLEXBIN_DEBUG_LOG("write buffered_string_view field:  value " << value)
-        return type_traits<flexbin::basic_buffered_stringview<T>>::write(ostr, value);
+      return type_traits<flexbin::basic_buffered_stringview<T>>::write(ostr, value);
     }
 
-    static size_t pack(ostream& ostr, uint8_t field_id, const flexbin::basic_buffered_stringview<T>& value) {
+    static bool pack(ostream& ostr, uint8_t field_id, const flexbin::basic_buffered_stringview<T>& value) {
+      FLEXBIN_DEBUG_LOG("pack buffered_string_view field: field_id " << (int)field_id << " value ")
       uint8_t code = type_traits<std::string>::code_;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
-      FLEXBIN_DEBUG_LOG("pack buffered_string_view field: field_id " << (int)field_id << " value ")
-        return type_traits<flexbin::basic_buffered_stringview<T>>::write(ostr, value) + 2;
+      if (ostr.failed() || !ostr.good())
+        return false;
+      return type_traits<flexbin::basic_buffered_stringview<T>>::write(ostr, value) + 2;
     }
   };
 
   template <typename T>
   struct field_writer<T, std::enable_if_t<std::is_fundamental<T>::value> > { 
 
-    static size_t write( ostream& ostr, const T& value) {  
+    static bool write( ostream& ostr, const T& value) {  
       FLEXBIN_DEBUG_LOG("write fundamental field:  type " << (int)type_traits<T>::code_ << " value "<< (int)value)
       return type_traits<T>::write(ostr, value);
     }
 
-    static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
+    static bool pack( ostream& ostr, uint8_t field_id, const T& value) {  
       FLEXBIN_DEBUG_LOG("pack fundamental type " << (int)type_traits<T>::code_ << " field_id" << (int) field_id << " value " << (int)value)
       return type_traits<T>::pack(ostr, field_id, value);
     }
@@ -121,12 +89,12 @@ namespace flexbin
   template <typename T>
   struct field_writer<T, std::enable_if_t<std::is_enum<T>::value> > { 
 
-    static size_t write( ostream& ostr, const T& value) {  
+    static bool write( ostream& ostr, const T& value) {
       FLEXBIN_DEBUG_LOG("write enum field:  value " << (int)value)
       return type_traits<T>::write(ostr, value);
     }
 
-    static size_t pack( ostream& ostr, uint8_t field_id, const T& value) {  
+    static bool pack( ostream& ostr, uint8_t field_id, const T& value) {
       FLEXBIN_DEBUG_LOG("pack enum field: field_id" << field_id << " value " << (int) value)
       return type_traits<T>::pack(ostr, field_id, value);
     }
@@ -134,40 +102,52 @@ namespace flexbin
 
   template <typename T>
   struct field_writer< std::vector<T> > {
-    static size_t write(ostream& ostr, const std::vector<T> & value) {
+    static bool write(ostream& ostr, const std::vector<T> & value) {
       size_t size = value.size();
+      FLEXBIN_DEBUG_LOG("|write vector field: size" << size << " type: " << type_traits<T>::code_)
       ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
-      FLEXBIN_DEBUG_LOG("|write vector field: size" << size << " type: " << type_traits<T>::code_ )
-      for (const auto & v : value)
-        field_writer<T>::write(ostr, v);
+      if (ostr.failed() || !ostr.good())
+        return false;
+      for (const auto & v : value) {
+        if(!field_writer<T>::write(ostr, v))
+          return false;
+      }
       FLEXBIN_DEBUG_LOG("|write vector " )
-      return size + sizeof(size_t);
+      return true;
     }
 
-    static size_t pack(ostream& ostr, uint8_t field_id, const std::vector<T>& value) {
+    static bool pack(ostream& ostr, uint8_t field_id, const std::vector<T>& value) {
       uint8_t code = type_traits<std::vector<T>>::code_;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      if (ostr.failed() || !ostr.good())
+        return false;
       return write(ostr, value);
     }
   };
 
   template <typename T>
   struct field_writer< std::unordered_set<T> > {
-    static size_t write(ostream& ostr, const std::unordered_set<T> & value) {
+    static bool write(ostream& ostr, const std::unordered_set<T> & value) {
       size_t size = value.size();
       ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
+      if (ostr.failed() || !ostr.good())
+        return false;
       FLEXBIN_DEBUG_LOG("|write unordered_set field: size" << size << " type: " << type_traits<T>::code_)
-        for (const auto & v : value)
-          field_writer<T>::write(ostr, v);
+      for (const auto & v : value) {
+        if(!field_writer<T>::write(ostr, v))
+          return false;
+      }
       FLEXBIN_DEBUG_LOG("|write unordered_set ")
         return size + sizeof(size_t);
     }
 
-    static size_t pack(ostream& ostr, uint8_t field_id, const std::unordered_set<T>& value) {
+    static bool pack(ostream& ostr, uint8_t field_id, const std::unordered_set<T>& value) {
       uint8_t code = type_traits<std::unordered_set<T>>::code_;
       ostr.write(reinterpret_cast<const char*>(&code), 1);
       ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      if (ostr.failed() || !ostr.good())
+        return false;
       return write(ostr, value);
     }
   };
@@ -175,12 +155,12 @@ namespace flexbin
 
   template <typename T, typename TDeleter>
   struct field_writer< std::unique_ptr<T, TDeleter> > {
-    static size_t write(ostream& ostr, const std::unique_ptr<T, TDeleter> & value) {
+    static bool write(ostream& ostr, const std::unique_ptr<T, TDeleter> & value) {
       FLEXBIN_DEBUG_LOG("write unique_ptr field: type: " << type_traits<T>::code_)
       return field_writer<T>::write(ostr, *value);
     }
 
-    static size_t pack(ostream& ostr, uint8_t field_id, const std::unique_ptr<T, TDeleter>& value) {
+    static bool pack(ostream& ostr, uint8_t field_id, const std::unique_ptr<T, TDeleter>& value) {
       FLEXBIN_DEBUG_LOG("pack unique_ptr field: field id " << (int)field_id << " type: " << type_traits<T>::code_)
       return field_writer<T>::pack(ostr, field_id, *value);
     }
@@ -188,12 +168,12 @@ namespace flexbin
 
   template <typename T>
   struct field_writer< std::shared_ptr<T> > {
-    static size_t write(ostream& ostr, const std::shared_ptr<T> & value) {      
+    static bool write(ostream& ostr, const std::shared_ptr<T> & value) {
       FLEXBIN_DEBUG_LOG("write shared_ptr field: field id type: " << type_traits<T>::code_)
       return field_writer<T>::write(ostr, *value);
     }
 
-    static size_t pack(ostream& ostr, uint8_t field_id, const std::shared_ptr<T>& value) {
+    static bool pack(ostream& ostr, uint8_t field_id, const std::shared_ptr<T>& value) {
       FLEXBIN_DEBUG_LOG("pack shared_ptr field: field id " << (int)field_id << " type: " << type_traits<T>::code_)
       return field_writer<T>::pack(ostr, field_id, *value);
     }
@@ -203,29 +183,31 @@ namespace flexbin
 //////////////////////////
 // Write strategies: fixes, optional, required, simplified
   template<typename T>    
-  inline size_t write_fixed( ostream& ostr, const T& value) {
+  inline bool write_fixed( ostream& ostr, const T& value) {
     return field_writer<T>::write(ostr, value);
   };
 
   template<typename T>    
-  inline size_t write_required( ostream& ostr, uint8_t field_id, const T& value) {
+  inline bool write_required( ostream& ostr, uint8_t field_id, const T& value) {
     FLEXBIN_DEBUG_LOG("-- write required field: field id " << (int)field_id )
     auto retval = field_writer<T>::pack(ostr, field_id, value);
     return retval;
   };
 
   template<typename T>    
-  inline size_t write_optional( ostream& ostr,  uint8_t field_id, const T& value) {
+  inline bool write_optional( ostream& ostr,  uint8_t field_id, const T& value) {
     if(type_traits<T> ::default_value_ == value) 
-     return 0;
+     return true;
     return  field_writer<T>::pack(ostr, field_id, value);
   };
 
   template<typename T>    
-  inline size_t write_simplified( ostream& ostr,  uint8_t field_id, const T& value) {
+  inline bool write_simplified( ostream& ostr,  uint8_t field_id, const T& value) {
     uint8_t code = type_traits<T>::code_;
     ostr.write(reinterpret_cast<const char*>(&code), 1);
     ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+    if (ostr.failed() || !ostr.good())
+      return false;
     return type_traits<T>::write(ostr, value) + 2;
   };
 
@@ -282,21 +264,6 @@ namespace flexbin
         )
       ostr.write_direct(size_pos, reinterpret_cast<const char *> (&object_size), sizeof(object_size));
       object_size_pos.pop();
-/*
-      if (object_end_pos > size_pos) { // real writing, not just counting object size 
-
-        auto object_size = static_cast<uint32_t>(object_end_pos - size_pos);
-
-        FLEXBIN_DEBUG_LOG("== write object bottom: class id " << (int)T::flexbin_class_id << " object_end_pos " << object_end_pos
-          << " size_pos " << size_pos << " object size " << object_size)
-
-        auto stream_pos = ostr.tellp();
-
-        ostr.seekp(stream_pos - object_size);
-        ostr.write(reinterpret_cast<const char*>(&object_size), 4);
-        ostr.seekp(stream_pos);
-        object_size_pos.pop();
-      }*/
       return true;
     }
 
@@ -306,7 +273,7 @@ namespace flexbin
       __if_exists(T::flexbin_serialize_required)
       {
         auto field_serializer_required = [this, &ostr](auto&&... args) {
-          ((success_ = success_ && ( 0 != write_required(ostr, ++field_id, args))), ...);
+          ((success_ = success_ && write_required(ostr, ++field_id, args)), ...);
         };
         std::apply(field_serializer_required, obj.flexbin_serialize_required());
       }
@@ -317,7 +284,7 @@ namespace flexbin
       __if_exists(T::flexbin_serialize_optional)
       {
         auto field_serializer_optional = [this, &ostr](auto&&... args) {
-          ((success_  = success_ && (0 != write_optional(ostr, ++field_id, args))), ...);
+          ((success_  = success_ && write_optional(ostr, ++field_id, args)), ...);
         };
         std::apply(field_serializer_optional, obj.flexbin_serialize_optional());
       }
@@ -329,7 +296,7 @@ namespace flexbin
       __if_exists(T::flexbin_serialize_fixed)
       {
         auto field_serializer_fixed = [this, &ostr](auto&&... args) {
-          ((success_ = success_ && (0 != write_fixed(ostr, args))), ...);
+          ((success_ = success_ && write_fixed(ostr, args)), ...);
         };
         std::apply(field_serializer_fixed, obj.flexbin_serialize_fixed());
       }
@@ -340,7 +307,7 @@ namespace flexbin
       __if_exists(T::flexbin_serialize_simplified)
       {
         auto field_serializer_simplified = [this, &ostr](auto&&... args) {
-          ((success_  = success_ && (0 != write_simplified(ostr, ++field_id, args))), ...);
+          ((success_  = success_ && write_simplified(ostr, ++field_id, args)), ...);
         };
         std::apply(field_serializer_simplified, obj.flexbin_serialize_simplified());
       }
@@ -352,7 +319,7 @@ namespace flexbin
     typename std::enable_if< required_fields_exists , C>::type
     write_required_fields(ostream& ostr, const T& obj) {
       auto field_serializer_required = [this, &ostr](auto&&... args) { 
-          ( (success_  = success_ && (0 != write_required(ostr, ++field_id,  args))) , ... );
+          ( (success_  = success_ && write_required(ostr, ++field_id,  args)) , ... );
         };
       std::apply( field_serializer_required, obj.flexbin_serialize_required());
       return success_;
@@ -370,7 +337,7 @@ namespace flexbin
     typename std::enable_if< optional_fields_exists , C>::type
     write_optional_fields(ostream& ostr, const T& obj) {
       auto field_serializer_optional = [this, &ostr](auto&&... args) { 
-          ( (success_  = success_ && (0 != write_optional(ostr, ++field_id,  args))) , ... );
+          ( (success_  = success_ && write_optional(ostr, ++field_id,  args)) , ... );
         };
       std::apply( field_serializer_optional, obj.flexbin_serialize_optional());
       return success_;
@@ -388,7 +355,7 @@ namespace flexbin
     typename std::enable_if< fixed_fields_exists , C>::type
     write_fixed_fields(ostream& ostr, const T& obj) {
       auto field_serializer_fixed = [this, &ostr](auto&&... args) { 
-          ( (success_ = success_ && (0!=write_fixed(ostr, args))) , ... );
+          ( (success_ = success_ && write_fixed(ostr, args)) , ... );
         };
       std::apply( field_serializer_fixed, obj.flexbin_serialize_fixed());
       return success_;
@@ -406,7 +373,7 @@ namespace flexbin
     typename std::enable_if< simplified_fields_exists , C>::type
     write_simplified_fields(ostream& ostr, const T& obj) {
       auto field_serializer_simplified = [this, &ostr](auto&&... args) { 
-          ( (success_  = success_ && (0 != write_simplified(ostr, ++field_id,  args))) , ... );
+          ( (success_  = success_ && write_simplified(ostr, ++field_id,  args)) , ... );
         };
       std::apply( field_serializer_simplified, obj.flexbin_serialize_simplified());
       return success_;

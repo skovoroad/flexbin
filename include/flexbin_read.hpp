@@ -238,7 +238,11 @@ namespace flexbin
   template<typename T>
   inline bool read_required(istream& istr, uint8_t field_id, T& value) {
     uint8_t type(0), id(0);
-    if (!type_traits<uint8_t>::read(istr, type) || !type_traits<uint8_t>::read(istr, id)) 
+    if (!type_traits<uint8_t>::read(istr, type) ) 
+      return false;
+    if (type == end_marker)
+      return false;
+    if (!type_traits<uint8_t>::read(istr, id))
       return false;
 
     if (id != field_id) {
@@ -252,7 +256,13 @@ namespace flexbin
   template<typename T>
   inline bool read_optional(istream& istr, uint8_t field_id, T& value) {
     uint8_t type(0), id(0);
-    if (!type_traits<uint8_t>::read(istr, type) || !type_traits<uint8_t>::read(istr, id))
+    if (!type_traits<uint8_t>::read(istr, type))
+      return false;
+    if (type == end_marker) {
+      istr.putback(end_marker);
+      return true;
+    }
+    if (!type_traits<uint8_t>::read(istr, id))
       return false;
     if (id != field_id) {
       value = type_traits<T>::default_value_;
@@ -265,7 +275,13 @@ namespace flexbin
   template<typename T>
   inline bool read_simplified(istream& istr, uint8_t field_id, T& value) {
     uint8_t type(0), id(0);
-    if (!type_traits<uint8_t>::read(istr, type) || !type_traits<uint8_t>::read(istr, id))
+    if (!type_traits<uint8_t>::read(istr, type))
+      return false;
+    if (type == end_marker) {
+      istr.putback(end_marker);
+      return true;
+    }
+    if (!type_traits<uint8_t>::read(istr, id))
       return false;
     if (id != field_id) {
       value = type_traits<T>::default_value_;
@@ -431,7 +447,7 @@ namespace flexbin
     bool read_bottom(istream& istr,  T& obj) {
       uint8_t em = 0;
       if (!type_traits<uint8_t>::read(istr, em)) {
-        FLEXBIN_DEBUG_LOG("ERROR read object bottom: class id " << (int)T::flexbin_class_id << " bad marker! " << (int) em)
+        FLEXBIN_DEBUG_LOG("ERROR read object bottom: class id " << (int)T::flexbin_class_id << " bad marker! " << (int)em)
         return false;
       }
       FLEXBIN_DEBUG_LOG("== read object bottom: class id " << (int)T::flexbin_class_id << " good end marker " << (int)em)
