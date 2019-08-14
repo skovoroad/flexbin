@@ -102,8 +102,10 @@ namespace flexbin
 
   template <typename T>
   struct field_writer< std::vector<T> > {
+    typedef uint16_t len_t;
+
     static bool write(ostream& ostr, const std::vector<T> & value) {
-      size_t size = value.size();
+      len_t size = static_cast<len_t>(value.size());
       FLEXBIN_DEBUG_LOG("|write vector field: size" << size << " type: " << type_traits<T>::code_)
       ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
       if (ostr.failed() || !ostr.good())
@@ -128,8 +130,10 @@ namespace flexbin
 
   template <typename T>
   struct field_writer< std::unordered_set<T> > {
+    typedef uint16_t len_t;
+
     static bool write(ostream& ostr, const std::unordered_set<T> & value) {
-      size_t size = value.size();
+      len_t size = static_cast<len_t>(value.size());
       ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
       if (ostr.failed() || !ostr.good())
         return false;
@@ -154,8 +158,10 @@ namespace flexbin
 
   template <typename TKey, typename TValue>
   struct field_writer< std::unordered_multimap<TKey, TValue> > {
+    typedef uint16_t len_t;
+
     static bool write(ostream& ostr, const std::unordered_multimap<TKey, TValue> & value) {
-      size_t size = value.size();
+      len_t size = static_cast<len_t>(value.size());
       ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
       if (ostr.failed() || !ostr.good())
         return false;

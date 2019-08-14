@@ -136,10 +136,11 @@ namespace flexbin
 
   template <typename T>
   struct field_reader< std::vector<T> > {
+    typedef uint16_t len_t;
 
     static bool read(istream& istr, std::vector < T>& value) {
-      size_t len = 0;
-      if (!type_traits<size_t>::read(istr, len))
+      len_t len = 0;
+      if (!type_traits<len_t>::read(istr, len))
         return false;
       auto elem_type = type_traits<T>::code_;
       FLEXBIN_DEBUG_LOG("|unpack vector, size " << len << " elem_type " << elem_type)
@@ -163,9 +164,11 @@ namespace flexbin
 
   template <typename T>
   struct field_reader< std::unordered_set<T> > {
+    typedef uint16_t len_t;
+
     static bool read(istream& istr, std::unordered_set < T>& value) {
-      size_t len = 0;
-      if (!type_traits<size_t>::read(istr, len))
+      len_t len = 0;
+      if (!type_traits<len_t>::read(istr, len))
         return false;
       auto elem_type = type_traits<T>::code_;
       FLEXBIN_DEBUG_LOG("|unpack unordered_set, size " << len << " elem_type " << elem_type)
@@ -189,10 +192,11 @@ namespace flexbin
 
   template <typename TKey, typename TValue>
   struct field_reader< std::unordered_multimap<TKey, TValue> > {
+    typedef uint16_t len_t;
 
     static bool read(istream& istr, std::unordered_multimap<TKey, TValue>& value) {
-      size_t len = 0;
-      if (!type_traits<size_t>::read(istr, len))
+      len_t len = 0;
+      if (!type_traits<len_t>::read(istr, len))
         return false;
       auto key_type = type_traits<TKey>::code_;
       auto val_type = type_traits<TValue>::code_;
