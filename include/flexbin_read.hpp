@@ -149,7 +149,7 @@ namespace flexbin
             FLEXBIN_DEBUG_LOG("ERROR unpack read next vector element")
               return false;
           }
-          value.push_back(val);
+          value.push_back(std::move(val));
         }
       FLEXBIN_DEBUG_LOG("|unpack vector end, size " << len << " elem_type " << elem_type << " actual size " << value.size())
       return istr.good();
@@ -196,7 +196,7 @@ namespace flexbin
         return false;
       auto key_type = type_traits<TKey>::code_;
       auto val_type = type_traits<TValue>::code_;
-      FLEXBIN_DEBUG_LOG("|unpack unordered_multimap, size " << len << " elem_type " << elem_type)
+      FLEXBIN_DEBUG_LOG("|unpack unordered_multimap, size " << len << " key type " << key_type << " elem ype " << val_type)
       while (len-- > 0) {
         std::pair<TKey, TValue> pair;
         if (!field_reader<TKey>::unpack_value(istr, key_type, pair.first)) {
@@ -209,7 +209,7 @@ namespace flexbin
         }
         value.emplace(pair);
       }
-      FLEXBIN_DEBUG_LOG("|unpack unordered_set end, size " << len << " elem_type " << elem_type << " actual size " << value.size())
+      FLEXBIN_DEBUG_LOG("|unpack unordered_set end, size " << len << " key type " << key_type << " elem ype " << val_type << " actual size " << value.size())
       return istr.good();
     }
 
