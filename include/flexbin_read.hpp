@@ -299,6 +299,8 @@ namespace flexbin
     if (!type_traits<uint8_t>::read(istr, id))
       return false;
     if (id != field_id) {
+      istr.putback(id);
+      istr.putback(type);
       value = type_traits<T>::default_value_;
       return true;
     }
@@ -318,6 +320,8 @@ namespace flexbin
     if (!type_traits<uint8_t>::read(istr, id))
       return false;
     if (id != field_id) {
+      istr.putback(id);
+      istr.putback(type);
       value = type_traits<T>::default_value_;
       return true;
     }
