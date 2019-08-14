@@ -34,7 +34,7 @@ namespace flexbin {
       auto candidate = static_cast<TCandidate>(val);
       if (candidate == val) {
         return write_field_header<TCandidate>(ostr, field_id) &&
-          type_traits<TCandidate>::write(ostr, val);
+          type_traits<TCandidate>::write(ostr, candidate);
       }
 
       return type_packer<T, Rest...>::pack(ostr, field_id, val);
@@ -224,7 +224,9 @@ namespace flexbin {
   struct type_traits<std::basic_string<T>>
   {
     enum { code_ = 21 };
-    enum { default_value_ = 0 };
+    //enum { default_value_ = 0 };
+    static std::basic_string<T> default_value_;
+
     typedef uint16_t len_t;
     inline static bool write(ostream& ostr, const std::basic_string<T>& str) {
       len_t len = static_cast<len_t>(str.size());
@@ -243,6 +245,8 @@ namespace flexbin {
       return istr.good();
     }
   };
+
+  std::basic_string<char> type_traits<std::basic_string<char>>::default_value_;
 
   template<typename T>
   struct type_traits<basic_buffered_stringview<T>>
