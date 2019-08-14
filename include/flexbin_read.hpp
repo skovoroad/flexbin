@@ -163,13 +163,7 @@ namespace flexbin
 
   template <typename T>
   struct field_reader< std::unordered_set<T> > {
-
     static bool read(istream& istr, std::unordered_set < T>& value) {
-      FLEXBIN_DEBUG_LOG("ERROR attempt to read unordered_set")
-      return false;
-    }
-
-    static bool unpack_value(istream& istr, uint8_t type, std::unordered_set < T>& value) {
       size_t len = 0;
       if (!type_traits<size_t>::read(istr, len))
         return false;
@@ -184,7 +178,43 @@ namespace flexbin
           value.insert(val);
         }
       FLEXBIN_DEBUG_LOG("|unpack unordered_set end, size " << len << " elem_type " << elem_type << " actual size " << value.size())
-        return istr.good();
+      return istr.good();
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, std::unordered_set < T>& value) {
+      return read(istr, value);
+    }
+
+  };
+
+  template <typename TKey, typename TValue>
+  struct field_reader< std::unordered_multimap<TKey, TValue> > {
+
+    static bool read(istream& istr, std::unordered_multimap<TKey, TValue>& value) {
+      size_t len = 0;
+      if (!type_traits<size_t>::read(istr, len))
+        return false;
+      auto key_type = type_traits<TKey>::code_;
+      auto val_type = type_traits<TValue>::code_;
+      FLEXBIN_DEBUG_LOG("|unpack unordered_multimap, size " << len << " elem_type " << elem_type)
+      while (len-- > 0) {
+        std::pair<TKey, TValue> pair;
+        if (!field_reader<TKey>::unpack_value(istr, key_type, pair.first)) {
+          FLEXBIN_DEBUG_LOG("ERROR unpack read next unordered_multimap key")
+            return false;
+        }
+        if (!field_reader<TValue>::unpack_value(istr, val_type, pair.second)) {
+          FLEXBIN_DEBUG_LOG("ERROR unpack read next unordered_multimap value")
+            return false;
+        }
+        value.emplace(pair);
+      }
+      FLEXBIN_DEBUG_LOG("|unpack unordered_set end, size " << len << " elem_type " << elem_type << " actual size " << value.size())
+      return istr.good();
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, std::unordered_multimap<TKey, TValue>& value) {
+      return read(istr, value);
     }
 
   };

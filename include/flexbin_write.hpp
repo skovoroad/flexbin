@@ -152,6 +152,35 @@ namespace flexbin
     }
   };
 
+  template <typename TKey, typename TValue>
+  struct field_writer< std::unordered_multimap<TKey, TValue> > {
+    static bool write(ostream& ostr, const std::unordered_multimap<TKey, TValue> & value) {
+      size_t size = value.size();
+      ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
+      if (ostr.failed() || !ostr.good())
+        return false;
+      FLEXBIN_DEBUG_LOG("|write unordered_multimap field: size" << size << " type key: " << type_traits<TKey>::code_
+        << " type value: " << type_traits<TValue>::code_ )
+        for (const auto & v : value) {
+          if (!field_writer<TKey>::write(ostr, v.first))
+            return false;
+          if (!field_writer<TValue>::write(ostr, v.second))
+            return false;
+        }
+      FLEXBIN_DEBUG_LOG("|write unordered_multimap ")
+        return size + sizeof(size_t);
+    }
+
+    static bool pack(ostream& ostr, uint8_t field_id, const std::unordered_multimap<TKey, TValue>& value) {
+      uint8_t code = type_traits<std::unordered_multimap<TKey, TValue>>::code_;
+      ostr.write(reinterpret_cast<const char*>(&code), 1);
+      ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      if (ostr.failed() || !ostr.good())
+        return false;
+      return write(ostr, value);
+    }
+  };
+
 
   template <typename T, typename TDeleter>
   struct field_writer< std::unique_ptr<T, TDeleter> > {

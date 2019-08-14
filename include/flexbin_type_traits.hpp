@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 #include "flexbin_streams.hpp"
 #include "flexbin_stringview.hpp"
 
@@ -169,6 +170,13 @@ namespace flexbin {
   {
     enum { code_ = 25 };
   };
+
+  template<typename TKey, typename TValue>
+  struct type_traits<std::unordered_multimap<TKey, TValue>>
+  { // write like array of pairs key, value, key, value, key, value, key, value, key, value
+    enum { code_ = 25 };
+  };
+
 
   template<typename T>
   struct type_traits<T, std::enable_if_t<std::is_enum<T>::value> >

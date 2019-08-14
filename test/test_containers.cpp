@@ -65,3 +65,56 @@ TEST(TestFlexbin, Vector)
 
   serialize_and_compare(a1, a2);
 }
+
+TEST(TestFlexbin, UnorderedMultimap)
+{
+  struct Multimaps {
+    struct Substruct {
+      uint16_t a_;
+      std::string b_;
+
+      bool operator==(const Substruct &r) const {
+        return a_ == r.a_ &&
+          b_ == r.b_
+          ;
+      }
+
+      FLEXBIN_CLASS_ID(666);
+      FLEXBIN_SERIALIZE_REQUIRED(a_, b_);
+    };
+
+
+    std::unordered_multimap<std::string, Substruct> a_;
+    std::unordered_multimap<std::string, uint64_t> b_;
+    std::unordered_multimap<uint64_t, int8_t> c_;
+    std::unordered_multimap<int8_t, uint64_t> d_;
+
+    FLEXBIN_CLASS_ID(1234);
+    FLEXBIN_SERIALIZE_REQUIRED(a_);
+    FLEXBIN_SERIALIZE_FIXED(b_);
+    //    FLEXBIN_SERIALIZE_OPTIONAL(c_);
+    //    FLEXBIN_SERIALIZE_SIMPLIFIED(d_);
+
+    bool operator==(const Multimaps &r) const {
+      return a_ == r.a_  &&
+        b_ == r.b_ //&&
+        //c_  == r.c_ &&
+        //d_  == r.d_
+        ;
+    }
+  };
+
+  Multimaps a1{
+    { {"first", {1, "one"}}, {"second", {2, "two"}} },
+    {} ,
+    {} ,
+    {},
+  };
+
+  Multimaps a2;
+
+  //  EnumStruct a1 { EnumStruct::Test_A, EnumStruct::Test_B, EnumStruct::Test_C, EnumStruct::Test_D};
+  //  EnumStruct a2 { EnumStruct::Test_D, EnumStruct::Test_C, EnumStruct::Test_B, EnumStruct::Test_A,};
+
+  serialize_and_compare(a1, a2);
+}
