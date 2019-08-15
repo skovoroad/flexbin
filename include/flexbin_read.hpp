@@ -121,7 +121,7 @@ namespace flexbin
   struct field_reader<T, std::enable_if_t<std::is_enum<T>::value> > {
 
     static bool read(istream& istr, T& value) {
-      FLEXBIN_DEBUG_LOG("read enum, type " << (int)T::code_ )
+      FLEXBIN_DEBUG_LOG("read enum, type " << (int)type_traits<T>::code_ )
       return type_traits<T>::read(istr, value);
     }
 
