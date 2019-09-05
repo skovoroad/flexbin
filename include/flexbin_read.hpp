@@ -238,7 +238,7 @@ namespace flexbin
         value.reset(new T);
       bool retval = field_reader<T>::unpack_value(istr, type, *value);
       FLEXBIN_DEBUG_LOG("unpack_value unique_ptr: type " << (int)type << " retval " << retval << " type: " << type_traits<T>::code_)
-        return retval;
+      return retval;
     }
 
   };
@@ -301,10 +301,9 @@ namespace flexbin
     if (id != field_id) {
       istr.putback(id);
       istr.putback(type);
-      value = type_traits<T>::default_value_;
+      value = type_traits<T>::default_value();
       return true;
     }
-//    return field_reader<T>::read(istr, value); // NO! read real type, not T
     return field_reader<T>::unpack_value(istr, type, value);
   };
 
@@ -322,7 +321,7 @@ namespace flexbin
     if (id != field_id) {
       istr.putback(id);
       istr.putback(type);
-      value = type_traits<T>::default_value_;
+      value = type_traits<T>::default_value();
       return true;
     }
   //  return field_reader<T>::read(istr, value); // NO! read real type, not T

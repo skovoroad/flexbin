@@ -33,10 +33,12 @@ namespace flexbin
     typedef std::basic_ostream<char> base;
 
     ostream(char *p, size_t nbytes, bool count_mode = false) : 
-      pbase_(p),
       mem_buf_(p, nbytes),
-      std::basic_ostream<char>(&mem_buf_),
-      count_mode_(count_mode)
+      std::basic_ostream<char>(&mem_buf_), // in fact we ignore mem_buf_; just phony for maybe future beautiful times
+      count_mode_(count_mode),
+      pbegin_(p),
+      pos_(p),
+      pend_(p + nbytes)
     {
     }
 
@@ -49,8 +51,15 @@ namespace flexbin
     }
     
     basic_ostream& write(const base::char_type* data, std::streamsize nbytes) {
-      if (!count_mode_)
-        base::write(data, nbytes);
+      if (!count_mode_) {
+        if(pos_ + nbytes > pend_) {
+          failed_ = true;
+          return *this;
+        }
+        std::memcpy(reinterpret_cast<void *>(pos_), data, nbytes);
+        pos_ += nbytes;
+      }
+        //base::write(data, nbytes);
       count_ += nbytes;
       return *this;
     }
@@ -60,8 +69,13 @@ namespace flexbin
     }
 
     bool write_direct(std::streamsize pos, const char * p, size_t nbytes) {
-      if (!count_mode_)
-        std::memcpy( reinterpret_cast<void *>(pbase_ + (size_t)pos), p, nbytes);
+      if (!count_mode_) {
+        if (pbegin_ + (size_t)pos + nbytes > pend_) {
+          failed_ = true;
+          return false;
+        }
+        std::memcpy(reinterpret_cast<void *>(pbegin_ + (size_t)pos), p, nbytes);
+      }
       //count_ += nbytes;
       return true;
     }
@@ -71,7 +85,10 @@ namespace flexbin
     bool count_mode_ = false;
     std::streamsize count_ = 0;
     flexbin::memmap_buffer mem_buf_;
-    char *pbase_;
+    // char *pbase_;
     bool failed_ = false;
+    char *pbegin_ = nullptr;
+    char *pos_ = nullptr;
+    char *pend_ = nullptr;
   };
 }

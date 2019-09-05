@@ -23,7 +23,7 @@ namespace flexbin {
   }
 
   /////////////////
-  // packer
+  // packer for fundamental types
   template <typename... Args>
   struct type_packer;
 
@@ -67,7 +67,7 @@ namespace flexbin {
   };
   // packer
   /////////////////
-
+  // writer for fundamental types
   template<typename T>
   struct type_writer
   {
@@ -81,15 +81,16 @@ namespace flexbin {
       return istr.good();
     }
 
+    inline static T default_value() { return 0;  }
   };
 
   ///////////
+  //  fundamental types traits
   template<>
   struct type_traits<uint8_t> :
     public type_writer<uint8_t>,
     type_packer<uint8_t>
   {
-    enum { default_value_ = 0 };
     enum { code_ = 2 };
   };
 
@@ -98,7 +99,6 @@ namespace flexbin {
     public type_writer<uint16_t>,
     type_packer<uint16_t, uint8_t>
   {
-    enum { default_value_ = 0 };
     enum { code_ = 4 };
   };
 
@@ -108,7 +108,6 @@ namespace flexbin {
     public type_writer<uint32_t>,
     type_packer<uint32_t, uint8_t, uint16_t> // base class first, candidates next
   {
-    enum { default_value_ = 0 };
     enum { code_ = 8 };
   };
 
@@ -117,7 +116,6 @@ namespace flexbin {
     public type_writer<uint64_t>,
     type_packer<uint64_t, uint8_t, uint16_t, uint32_t>// base class first, candidates next
   {
-    enum { default_value_ = 0 };
     enum { code_ = 16 };
   };
 
@@ -127,7 +125,6 @@ namespace flexbin {
     public type_writer<int8_t>,
     type_packer<int8_t>
   {
-    enum { default_value_ = 0 };
     enum { code_ = 3 };
   };
 
@@ -136,7 +133,6 @@ namespace flexbin {
     public type_writer<int16_t>,
     type_packer<int16_t, int8_t>
   {
-    enum { default_value_ = 0 };
     enum { code_ = 5 };
   };
 
@@ -145,7 +141,6 @@ namespace flexbin {
     public type_writer<int32_t>,
     type_packer<int32_t, int8_t, int16_t> // base class first, candidates next
   {
-    enum { default_value_ = 0 };
     enum { code_ = 9 };
   };
 
@@ -154,7 +149,6 @@ namespace flexbin {
     public type_writer<int64_t>,
     type_packer<int64_t, int8_t, int16_t, int32_t>// base class first, candidates next
   {
-    enum { default_value_ = 0 };
     enum { code_ = 17 };
   };
 
@@ -177,13 +171,25 @@ namespace flexbin {
     enum { code_ = 25 };
   };
 
+  template<typename T>
+  struct type_traits<std::unique_ptr<T>>
+  {
+    inline constexpr static  std::unique_ptr<T> default_value() { return std::unique_ptr<T>(); }
+  };
+
+  template<typename T>
+  struct type_traits<std::shared_ptr<T>>
+  {
+    inline constexpr static std::shared_ptr<T> default_value() { return std::shared_ptr<T>(); }
+  };
 
   template<typename T>
   struct type_traits<T, std::enable_if_t<std::is_enum<T>::value> >
     : public type_packer<T>
   {
     enum { code_ = 200 };
-    enum { default_value_ = 0 };
+    inline constexpr static T default_value() { return 0; }
+
     constexpr static size_t enum_bytes = sizeof(T);
 
     inline static bool write(ostream& ostr, const T& val) {
@@ -201,7 +207,8 @@ namespace flexbin {
   struct type_traits<bool>
     : public type_packer<bool>
   {
-    enum { default_value_ = 0 };
+    inline constexpr static bool default_value() { return false; }
+
     enum { code_ = 1 };
 
     inline static bool write(ostream& ostr, const bool& val) {
@@ -224,8 +231,8 @@ namespace flexbin {
   struct type_traits<std::basic_string<T>>
   {
     enum { code_ = 21 };
-    //enum { default_value_ = 0 };
-    static std::basic_string<T> default_value_;
+    inline constexpr static std::basic_string<T> default_value() { return std::basic_string<T>(); }
+
 
     typedef uint16_t len_t;
     inline static bool write(ostream& ostr, const std::basic_string<T>& str) {
@@ -246,13 +253,12 @@ namespace flexbin {
     }
   };
 
-  std::basic_string<char> type_traits<std::basic_string<char>>::default_value_;
-
   template<typename T>
   struct type_traits<basic_buffered_stringview<T>>
   {
     enum { code_ = 21 };
-    enum { default_value_ = 0 };
+    inline constexpr static basic_buffered_stringview<T> default_value() { return basic_buffered_stringview<T>(); }
+
     typedef uint16_t len_t;
 
     inline static bool write(ostream& ostr, const basic_buffered_stringview<T>& str) {

@@ -86,8 +86,10 @@ namespace flexbin
     istream istr(reinterpret_cast<const char *>(data), nbytes);
 
     size = 0;
-    if (!type_traits<uint32_t>::read(istr, size))
+    if (!type_traits<uint32_t>::read(istr, size)) {
+      size = sizeof(size); // if we don't know size of message, we need just read size itself
       return false;
+    }
 
     return size <= nbytes;
   }

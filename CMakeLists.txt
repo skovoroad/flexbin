@@ -3,11 +3,6 @@ cmake_minimum_required (VERSION 3.1)
 project (flexbin)
 set (CMAKE_CXX_STANDARD 17)
 
-#if (POLICY CMP0074)
-#  cmake_policy(SET CMP0074 NEW)
-#endif()
-#set(GTEST_LANG_CXX11, 1)
-
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/.build)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})

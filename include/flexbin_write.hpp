@@ -231,7 +231,7 @@ namespace flexbin
 
   template<typename T>    
   inline bool write_optional( ostream& ostr,  uint8_t field_id, const T& value) {
-    if(type_traits<T> ::default_value_ == value) 
+    if(type_traits<T> ::default_value() == value) 
      return true;
     return  field_writer<T>::pack(ostr, field_id, value);
   };
