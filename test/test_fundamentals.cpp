@@ -122,6 +122,8 @@ TEST(TestFlexbin, FundamentalRequired)
   test_fundamental_type_field<TestDataOneFieldReqiured<int32_t>>();
   test_fundamental_type_field<TestDataOneFieldReqiured<int16_t>>();
   test_fundamental_type_field<TestDataOneFieldReqiured<int8_t>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<float>>();
+  test_fundamental_type_field<TestDataOneFieldReqiured<double>>();
 }
 TEST(TestFlexbin, FundamentalFixed)
 {
@@ -133,6 +135,8 @@ TEST(TestFlexbin, FundamentalFixed)
   test_fundamental_type_field<TestDataOneFieldFixed<int32_t>>();
   test_fundamental_type_field<TestDataOneFieldFixed<int16_t>>();
   test_fundamental_type_field<TestDataOneFieldFixed<int8_t>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<double>>();
+  test_fundamental_type_field<TestDataOneFieldFixed<float>>();
 }
 TEST(TestFlexbin, FundamentalOptional)
 {
@@ -144,6 +148,8 @@ TEST(TestFlexbin, FundamentalOptional)
   test_fundamental_type_field<TestDataOneFieldOptional<int32_t>>();
   test_fundamental_type_field<TestDataOneFieldOptional<int16_t>>();
   test_fundamental_type_field<TestDataOneFieldOptional<int8_t>>();
+  test_fundamental_type_field<TestDataOneFieldOptional<double>>();
+  test_fundamental_type_field<TestDataOneFieldOptional<float>>();
 }
 TEST(TestFlexbin, FundamentalSimplified)
 {
@@ -155,6 +161,8 @@ TEST(TestFlexbin, FundamentalSimplified)
   test_fundamental_type_field<TestDataOneFieldSimplified<int32_t>>();
   test_fundamental_type_field<TestDataOneFieldSimplified<int16_t>>();
   test_fundamental_type_field<TestDataOneFieldSimplified<int8_t>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<double>>();
+  test_fundamental_type_field<TestDataOneFieldSimplified<float>>();
 }
 
 TEST(TestFlexbin, Enum)

@@ -279,7 +279,6 @@ struct structure {
 
 
 void test_optional_ptr() {
-
   structure a1, b1;
 
   constexpr size_t bufsize = 256;
@@ -299,12 +298,59 @@ void test_optional_ptr() {
     assert(b1.ptr_);
     assert(a1.ptr_->val_ == b1.ptr_->val_);
   }
-
 }
+
+struct vector_of_ptr {
+  std::vector<std::unique_ptr<substructure>> vec_;
+  FLEXBIN_CLASS_ID(2);
+  FLEXBIN_SERIALIZE_OPTIONAL(vec_)
+};
+
+
+void test_vector_of_ptr() {
+  vector_of_ptr a1, b1;
+  
+  constexpr size_t bufsize = 256;
+  char mem[bufsize];
+  std::fill(mem, mem + bufsize, 0);
+
+  flexbin::istream fbin(mem, bufsize);
+  flexbin::ostream fbout(mem, bufsize);
+
+  fbout << a1;
+  fbin >> b1;
+
+  assert(a1.vec_.size() == b1.vec_.size());
+}
+
+struct doublestruct {
+  double val;
+  FLEXBIN_CLASS_ID(2);
+  FLEXBIN_SERIALIZE_OPTIONAL(val)
+};
+
+
+void test_double() {
+  doublestruct a1{ 1 }, b1{2};
+
+  constexpr size_t bufsize = 256;
+  char mem[bufsize];
+  std::fill(mem, mem + bufsize, 0);
+
+  flexbin::istream fbin(mem, bufsize);
+  flexbin::ostream fbout(mem, bufsize);
+
+  fbout << a1;
+  fbin >> b1;
+
+  assert(a1.val == b1.val);
+}
+
 
 int main(int argc, char** argv)
 {
-  test_optional_ptr();
+  test_double();
+  //test_optional_ptr();
 //  run();
  // test_new_write();
 //  test_buffered_stringview();

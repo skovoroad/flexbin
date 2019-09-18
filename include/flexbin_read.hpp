@@ -10,17 +10,18 @@ namespace flexbin
 {
 
   template<typename TCandidate, typename T>
-  bool read_packed_value(flexbin::istream& istr, T& retval) {
-   TCandidate tmp;
-   flexbin::type_traits<TCandidate>::read(istr, tmp);
-   retval = static_cast<T>(tmp);
-   return true;
-  }    
+  inline bool read_packed_value(flexbin::istream& istr, T& retval) {
+    TCandidate tmp;
+    flexbin::type_traits<TCandidate>::read(istr, tmp);
+    retval = static_cast<T>(tmp);
+    return true;
+  }
 
   enum PhonyEnum {};
 
+  // this for types which can be static_cast to each other
   template<typename T>
-  size_t unpack_value(istream& istr, uint8_t type, T& value) {
+  inline bool unpack_value(istream& istr, uint8_t type, T& value) {
       switch (type){
         case flexbin::type_traits<bool>::code_: 
           return read_packed_value<bool, T>(istr, value);
@@ -46,6 +47,19 @@ namespace flexbin
           return false;
       };
   }
+
+  template<>
+  inline bool unpack_value(istream& istr, uint8_t type, double& value) {
+    flexbin::type_traits<double>::read(istr, value);
+    return istr.good();
+  }
+
+  template<>
+  inline bool unpack_value(istream& istr, uint8_t type, float& value) {
+    flexbin::type_traits<float>::read(istr, value);
+    return istr.good();
+  }
+
 
   ///////////////////
   // Read methods selector for different field types: fundamental, std::string or struct/class
@@ -138,7 +152,7 @@ namespace flexbin
   struct field_reader< std::vector<T> > {
     typedef uint16_t len_t;
 
-    static bool read(istream& istr, std::vector < T>& value) {
+    static bool read(istream& istr, std::vector<T>& value) {
       len_t len = 0;
       if (!type_traits<len_t>::read(istr, len))
         return false;

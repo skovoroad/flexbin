@@ -87,6 +87,23 @@ namespace flexbin {
   ///////////
   //  fundamental types traits
   template<>
+  struct type_traits<float> :
+    public type_writer<float>,
+    type_packer<float>
+  {
+    enum { code_ = 18 };
+  };
+
+  template<>
+  struct type_traits<double> :
+    public type_writer<double>,
+    type_packer<double>
+  {
+    enum { code_ = 19 };
+  };
+
+  
+  template<>
   struct type_traits<uint8_t> :
     public type_writer<uint8_t>,
     type_packer<uint8_t>
@@ -156,6 +173,8 @@ namespace flexbin {
   template<typename T>
   struct type_traits<std::vector<T>>
   {
+    inline constexpr static std::vector<T> default_value() { return std::vector<T>(); }
+
     enum { code_ = 25 };
   };
 
@@ -174,12 +193,14 @@ namespace flexbin {
   template<typename T>
   struct type_traits<std::unique_ptr<T>>
   {
+    enum { code_ = type_traits<T>::code_ };
     inline constexpr static  std::unique_ptr<T> default_value() { return std::unique_ptr<T>(); }
   };
 
   template<typename T>
   struct type_traits<std::shared_ptr<T>>
   {
+    enum { code_ = type_traits<T>::code_ };
     inline constexpr static std::shared_ptr<T> default_value() { return std::shared_ptr<T>(); }
   };
 
