@@ -50,7 +50,7 @@ namespace flexbin
       return ostream::operator<<(*obj);
     }
     
-    basic_ostream& write(const base::char_type* data, std::streamsize nbytes) {
+    basic_ostream& write(const base::char_type* data, size_t nbytes) {
       if (!count_mode_) {
         if(pos_ + nbytes > pend_) {
           failed_ = true;
@@ -68,7 +68,7 @@ namespace flexbin
       return count_;
     }
 
-    bool write_direct(std::streamsize pos, const char * p, size_t nbytes) {
+    bool write_direct(size_t pos, const char * p, size_t nbytes) {
       if (!count_mode_) {
         if (pbegin_ + (size_t)pos + nbytes > pend_) {
           failed_ = true;
@@ -85,7 +85,6 @@ namespace flexbin
     bool count_mode_ = false;
     std::streamsize count_ = 0;
     flexbin::memmap_buffer mem_buf_;
-    // char *pbase_;
     bool failed_ = false;
     char *pbegin_ = nullptr;
     char *pos_ = nullptr;
