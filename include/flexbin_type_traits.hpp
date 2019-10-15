@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <list>
 #include <unordered_set>
 #include <unordered_map>
 #include "flexbin_streams.hpp"
@@ -174,6 +175,14 @@ namespace flexbin {
   struct type_traits<std::vector<T>>
   {
     inline constexpr static std::vector<T> default_value() { return std::vector<T>(); }
+
+    enum { code_ = 25 };
+  };
+
+  template<typename T>
+  struct type_traits<std::list<T>>
+  {
+    inline constexpr static std::list<T> default_value() { return std::list<T>(); }
 
     enum { code_ = 25 };
   };

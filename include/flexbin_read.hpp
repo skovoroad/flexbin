@@ -177,6 +177,34 @@ namespace flexbin
   };
 
   template <typename T>
+  struct field_reader< std::list<T> > {
+    typedef uint16_t len_t;
+
+    static bool read(istream& istr, std::list<T>& value) {
+      len_t len = 0;
+      if (!type_traits<len_t>::read(istr, len))
+        return false;
+      auto elem_type = type_traits<T>::code_;
+      FLEXBIN_DEBUG_LOG("|unpack list, size " << len << " elem_type " << elem_type)
+        while (len-- > 0) {
+          T val;
+          if (!field_reader<T>::unpack_value(istr, elem_type, val)) {
+            FLEXBIN_DEBUG_LOG("ERROR unpack read next list element")
+              return false;
+          }
+          value.push_back(std::move(val));
+        }
+      FLEXBIN_DEBUG_LOG("|unpack list end, size " << len << " elem_type " << elem_type << " actual size " << value.size())
+        return istr.good();
+    }
+
+    static bool unpack_value(istream& istr, uint8_t type, std::list < T>& value) {
+      return read(istr, value);
+    }
+
+  };
+
+  template <typename T>
   struct field_reader< std::unordered_set<T> > {
     typedef uint16_t len_t;
 

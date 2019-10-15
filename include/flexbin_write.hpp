@@ -101,6 +101,35 @@ namespace flexbin
   };
 
   template <typename T>
+  struct field_writer< std::list<T> > {
+    typedef uint16_t len_t;
+
+    static bool write(ostream& ostr, const std::list<T> & value) {
+      len_t size = static_cast<len_t>(value.size());
+      FLEXBIN_DEBUG_LOG("|write list field: size" << size << " type: " << type_traits<T>::code_)
+        ostr.write(reinterpret_cast<const char*>(&size), sizeof(size));
+      if (ostr.failed() || !ostr.good())
+        return false;
+      for (const auto & v : value) {
+        if (!field_writer<T>::write(ostr, v))
+          return false;
+      }
+      FLEXBIN_DEBUG_LOG("|write list ")
+        return true;
+    }
+
+    static bool pack(ostream& ostr, uint8_t field_id, const std::list<T>& value) {
+      uint8_t code = type_traits<std::list<T>>::code_;
+      ostr.write(reinterpret_cast<const char*>(&code), 1);
+      ostr.write(reinterpret_cast<const char*>(&field_id), 1);
+      if (ostr.failed() || !ostr.good())
+        return false;
+      return write(ostr, value);
+    }
+  };
+
+
+  template <typename T>
   struct field_writer< std::vector<T> > {
     typedef uint16_t len_t;
 
@@ -155,7 +184,6 @@ namespace flexbin
       return write(ostr, value);
     }
   };
-
   template <typename TKey, typename TValue>
   struct field_writer< std::unordered_multimap<TKey, TValue> > {
     typedef uint16_t len_t;
