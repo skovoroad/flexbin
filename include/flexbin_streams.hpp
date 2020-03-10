@@ -6,11 +6,13 @@
 
 namespace flexbin 
 {
-  struct istream : public std::basic_istream<char>
+  struct istream : 
+    private flexbin::memmap_buffer,
+    public std::basic_istream<char>
   {
     istream(const char *p, size_t nbytes) : 
-      mem_buf_(p, nbytes),
-      std::basic_istream<char>(&mem_buf_)
+      flexbin::memmap_buffer(p, nbytes),
+      std::basic_istream<char>(this)
     {
     }
 
@@ -24,17 +26,18 @@ namespace flexbin
 
     bool failed() { return failed_; }
   private:
-    flexbin::memmap_buffer mem_buf_;
     bool failed_ = false;
   };
 
-  struct ostream : public std::basic_ostream<char>
+  struct ostream : 
+    private flexbin::memmap_buffer,
+    public std::basic_ostream<char>
   {
     typedef std::basic_ostream<char> base;
 
     ostream(char *p, size_t nbytes, bool count_mode = false) : 
-      mem_buf_(p, nbytes),
-      std::basic_ostream<char>(&mem_buf_), // in fact we ignore mem_buf_; just phony for maybe future beautiful times
+      flexbin::memmap_buffer(p, nbytes),
+      std::basic_ostream<char>(this), // in fact we ignore flexbin::memmap_buffer inheritance; just phony for maybe future beautiful times
       count_mode_(count_mode),
       pbegin_(p),
       pos_(p),
@@ -84,7 +87,6 @@ namespace flexbin
   private:
     bool count_mode_ = false;
     std::streamsize count_ = 0;
-    flexbin::memmap_buffer mem_buf_;
     bool failed_ = false;
     char *pbegin_ = nullptr;
     char *pos_ = nullptr;
