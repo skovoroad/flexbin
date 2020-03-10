@@ -264,7 +264,7 @@ namespace flexbin {
     inline constexpr static std::basic_string<T> default_value() { return std::basic_string<T>(); }
 
 
-    typedef uint16_t len_t;
+    typedef uint32_t len_t;
     inline static bool write(ostream& ostr, const std::basic_string<T>& str) {
       len_t len = static_cast<len_t>(str.size());
       type_traits<len_t>::write(ostr, len);
@@ -289,7 +289,7 @@ namespace flexbin {
     enum { code_ = 21 };
     inline constexpr static basic_buffered_stringview<T> default_value() { return basic_buffered_stringview<T>(); }
 
-    typedef uint16_t len_t;
+    typedef uint32_t len_t;
 
     inline static bool write(ostream& ostr, const basic_buffered_stringview<T>& str) {
       len_t len = static_cast<len_t>(str.size());
