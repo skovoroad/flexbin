@@ -184,6 +184,7 @@ namespace flexbin
       return write(ostr, value);
     }
   };
+
   template <typename TKey, typename TValue>
   struct field_writer< std::unordered_multimap<TKey, TValue> > {
     typedef uint16_t len_t;
@@ -248,21 +249,21 @@ namespace flexbin
   template<typename T>    
   inline bool write_fixed( ostream& ostr, const T& value) {
     return field_writer<T>::write(ostr, value);
-  };
+  }
 
   template<typename T>    
   inline bool write_required( ostream& ostr, uint8_t field_id, const T& value) {
     FLEXBIN_DEBUG_LOG("-- write required field: field id " << (int)field_id )
     auto retval = field_writer<T>::pack(ostr, field_id, value);
     return retval;
-  };
+  }
 
   template<typename T>    
   inline bool write_optional( ostream& ostr,  uint8_t field_id, const T& value) {
     if(type_traits<T> ::default_value() == value) 
      return true;
     return  field_writer<T>::pack(ostr, field_id, value);
-  };
+  }
 
   template<typename T>    
   inline bool write_simplified( ostream& ostr,  uint8_t field_id, const T& value) {
@@ -272,7 +273,7 @@ namespace flexbin
     if (ostr.failed() || !ostr.good())
       return false;
     return type_traits<T>::write(ostr, value) + 2;
-  };
+  }
 
 ///////////////////////////
 //

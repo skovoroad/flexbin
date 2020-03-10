@@ -66,7 +66,7 @@ namespace flexbin {
     }
 
     const char * begin() const { return base::data();  }
-    const std::basic_string<TElem> & to_string() const { return buffer_; }
+    //const std::basic_string<TElem> & to_string() const { return buffer_; }
 
   private:
     std::basic_string<TElem> buffer_;

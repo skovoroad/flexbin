@@ -45,7 +45,7 @@ namespace flexbin
           return read_packed_value<int8_t, T>(istr, value);
         default:
           return false;
-      };
+      }
   }
 
   template<>
@@ -271,7 +271,11 @@ namespace flexbin
 
     static bool read(istream& istr, std::unique_ptr<T, TDeleter>& value) {
       FLEXBIN_DEBUG_LOG("read unique_ptr filed " << " type: " << type_traits<T>::code_)
-      return field_reader<T>::read(istr, *value);
+        if (!value)
+          //return false; // TODO: wtf? we need way to create it here
+          value.reset(new T);
+
+        return field_reader<T>::read(istr, *value);
     }
 
     static bool unpack_value(istream& istr, uint8_t type, std::unique_ptr<T, TDeleter>& value) {
@@ -290,7 +294,9 @@ namespace flexbin
 
     static bool read(istream& istr, std::shared_ptr<T>& value) {
       FLEXBIN_DEBUG_LOG("read shared_ptr filed:" << " type: " << type_traits<T>::code_)
-      return field_reader<T>::read(istr, *value);
+        if (!value)
+          value = std::make_shared<T>();
+        return field_reader<T>::read(istr, *value);
     }
 
     static bool unpack_value(istream& istr, uint8_t type, std::shared_ptr<T>& value) {
@@ -308,7 +314,7 @@ namespace flexbin
   template<typename T>
   inline bool read_fixed(istream& istr, T& value) {
     return field_reader<T>::read(istr, value);
-  };
+  }
 
 
   template<typename T>
@@ -327,7 +333,7 @@ namespace flexbin
     }
     FLEXBIN_DEBUG_LOG("-- read required field: field id " << (int)id )
     return field_reader<T>::unpack_value(istr, type, value);
-  };
+  }
 
   template<typename T>
   inline bool read_optional(istream& istr, uint8_t field_id, T& value) {
@@ -347,7 +353,7 @@ namespace flexbin
       return true;
     }
     return field_reader<T>::unpack_value(istr, type, value);
-  };
+  }
 
   template<typename T>
   inline bool read_simplified(istream& istr, uint8_t field_id, T& value) {
@@ -368,7 +374,7 @@ namespace flexbin
     }
   //  return field_reader<T>::read(istr, value); // NO! read real type, not T
     return field_reader<T>::unpack_value(istr, type, value);
-  };
+  }
 
   ///////////////////////////
 

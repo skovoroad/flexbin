@@ -15,7 +15,6 @@ struct SampleStruct {
   FLEXBIN_SERIALIZE_OPTIONAL(c_);
   FLEXBIN_SERIALIZE_SIMPLIFIED(d_);
 
-
   bool operator==(const SampleStruct &r) const { 
     return a_ == r.a_ && 
            b_  == r.b_ &&
