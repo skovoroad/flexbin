@@ -2,6 +2,7 @@
 
 #include "gtest/gtest.h"
 #include "flexbin.hpp"
+#include "flexbin_impl.hpp"
 
 struct SampleStruct {
   int a_ = 0;

@@ -3,6 +3,7 @@
 #include <typeinfo>
 
 #include "flexbin.hpp"
+#include "flexbin_impl.hpp"
 
 #include "gtest/gtest.h"
 #include "test_object.h"

@@ -5,6 +5,7 @@
 
 #define FLEXBIN_DEBUG_LOG_ON
 #include "flexbin.hpp"
+#include "flexbin_impl.hpp"
 
 namespace test_data
 {
