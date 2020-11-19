@@ -3,6 +3,10 @@
 #include <iostream>
 #include <tuple>
 #include <string>
+#include <sstream> 
+
+//#include <boost/iostreams/device/array.hpp>
+//#include <boost/iostreams/stream.hpp>
 
 #include "flexbin.hpp"
 #include "flexbin_type_traits.hpp"
@@ -18,7 +22,6 @@ namespace flexbin
   template<typename T>
   std::basic_ostream<char>& ostream::operator<< (const T& obj)
   {
-    int code = T ::flexbin_class_id;
     flexbin_writer<T> writer;
     if ( !(writer.write_header(*this, obj) &&
       writer.write_fixed_fields(*this, obj) && // fixed fields goes first
@@ -30,6 +33,68 @@ namespace flexbin
       failed_ = true;
     }
     return *this;
+  }
+ 
+  template<typename TSerializer, typename T>
+  void ostream::custom_dry_serialize (const T& obj)
+  {
+    
+    flexbin_writer<T> writer;
+    if ( !writer.write_header(*this, obj)) {
+      failed_ = true;
+      return;
+    }
+
+    std::stringstream ostr; 
+
+    if(!TSerializer::to_stream(ostr, obj)) {
+      failed_ = true;
+      return;
+    }
+
+    // correct buffer of *this
+    size_t written = ostr.tellp();    
+    count_ += written;
+
+    if(!writer.write_bottom(*this, obj))
+    {
+      failed_ = true;
+      return;
+    }
+  }
+
+
+  template<typename TSerializer, typename T>
+  void ostream::custom_serialize (const T& obj)
+  {
+    flexbin_writer<T> writer;
+    if ( !writer.write_header(*this, obj)) {
+      failed_ = true;
+      return;
+    }
+
+    // get direct access to buffer
+    // reason: operator<< redefined, 
+    // so we can't use flexbin::ostream in third-party serialization
+    flexbin::memmap_buffer mmap(pos_, pend_ - pos_);
+    std::ostream ostr(&mmap); 
+
+    if(!TSerializer::to_stream(ostr, obj)) {
+      failed_ = true;
+      return;
+    }
+    ostr.flush();
+
+    // correct buffer of *this
+    size_t written = mmap.putcount();    
+    count_ += written;
+    pos_ += written;
+
+    if(!writer.write_bottom(*this, obj))
+    {
+      failed_ = true;
+      return;
+    }
   }
 
   template<typename T>
@@ -48,6 +113,41 @@ namespace flexbin
     }
 
     return *this;
+  }
+
+  template<typename TSerializer, typename T>
+  void istream::custom_deserialize (T& obj)
+  {
+    flexbin_reader<T> reader;
+
+    if(!reader.read_header(*this, obj)) {
+      failed_ = true;
+      return; 
+    }
+
+    // get direct access to buffer
+    // reason: operator<< redefined, 
+    // so we can't use flexbin::ostream in third-party serialization
+    memmap_buffer* thisbuf = reinterpret_cast<memmap_buffer*>(rdbuf());
+    flexbin::memmap_buffer mmap( 
+       thisbuf->get() + thisbuf->getcount(), 
+       thisbuf->in_avail() - 1 // minus one - bottom byte
+    );
+    
+    std::istream istr(&mmap);
+    if(!TSerializer::from_stream(istr, obj)) {
+      failed_ = true;
+      return;
+    }
+
+    // correct buffer of *this 
+    auto red = mmap.getcount();
+    thisbuf->pubseekoff(red, std::ios_base::cur );
+
+    if(!reader.read_bottom(*this, obj)) {
+      failed_ = true;
+      return;
+    }
   }
 
   inline bool class_id(const void *data, size_t nbytes,  uint16_t & retval)
@@ -88,6 +188,18 @@ namespace flexbin
     
   }
 
+
+  // very very slow
+  template <typename TCustomSerializer, typename T>
+  inline std::size_t class_object_size(const T& obj) {
+    ostream ostr(reinterpret_cast<char *>(0), static_cast<size_t>(0) , true);
+//    ostr << obj;
+    ostr.custom_dry_serialize<TCustomSerializer>(obj);
+    auto retval = ostr.written_count();
+    FLEXBIN_DEBUG_LOG("class_object_size " << retval)
+    return retval;
+    
+  }
 
 } // namespace flexbin 
 

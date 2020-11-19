@@ -16,6 +16,7 @@ namespace flexbin
     {
     }
 
+    template<typename TSerializer, typename T> void custom_deserialize (T&);
     template<typename T> std::basic_istream<char>& operator>> (T&);
     template<typename T> std::basic_istream<char>& operator>> (std::shared_ptr<T>& obj){
       return istream::operator>> (*obj);
@@ -25,7 +26,7 @@ namespace flexbin
     }
 
     bool failed() { return failed_; }
-  private:
+ private:
     bool failed_ = false;
   };
 
@@ -45,6 +46,8 @@ namespace flexbin
     {
     }
 
+    template<typename TSerializer, typename T> void custom_serialize (const T& obj);
+    template<typename TSerializer, typename T> void custom_dry_serialize (const T& obj);
     template<typename T> std::basic_ostream<char>& operator<< (const T& obj);
     template<typename T> std::basic_ostream<char>& operator<< (const std::shared_ptr<T>& obj){
       return ostream::operator<<(*obj);
