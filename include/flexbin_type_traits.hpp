@@ -303,12 +303,11 @@ namespace flexbin {
       if (!type_traits<len_t >::read(istr, len))
         return false;
 
-      std::basic_string<T> buffer;
+      std::basic_string<T>& buffer = str.buffer();
       buffer.resize(len);
       istr.read(reinterpret_cast<char*>(buffer.data()), len * sizeof(T));
-
-      str = buffer;
-      str.bufferize();
+     
+      str.adjust();
 
       return istr.good();
     }

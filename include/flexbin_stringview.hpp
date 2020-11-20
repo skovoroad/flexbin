@@ -65,7 +65,12 @@ namespace flexbin {
       *this = buffer_;
     }
 
+    void adjust() {
+      *this = buffer_;
+    }
+
     const char * begin() const { return base::data();  }
+    std::basic_string<TElem>& buffer() { return buffer_; }
 
   private:
     std::basic_string<TElem> buffer_;
