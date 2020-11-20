@@ -124,7 +124,7 @@ namespace flexbin
       failed_ = true;
       return; 
     }
-
+    size_t redhead = this->tellg();
     // get direct access to buffer
     // reason: operator<< redefined, 
     // so we can't use flexbin::ostream in third-party serialization
@@ -141,8 +141,8 @@ namespace flexbin
     }
 
     // correct buffer of *this 
-    auto red = mmap.getcount();
-    thisbuf->pubseekoff(red, std::ios_base::cur );
+    size_t red = mmap.getcount();
+    thisbuf->pubseekoff(redhead + red, std::ios_base::beg );
 
     if(!reader.read_bottom(*this, obj)) {
       failed_ = true;
